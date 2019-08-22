@@ -1,0 +1,13 @@
+Song ID ---> (Error Message)
+----------------------------
+I Remember Steamier,9,1.3,0,1,7,1   (Error: there are non-integer characters on this line)
+Smooth, Therapists,5,7,8,5,1,3Error, too many aspect values for this song
+Heat of Colonnades,6,0,5.3,8,4,0   (Error: there are non-integer characters on this line)
+I'm Looking for Spasms,1,7,4,0,8,4,2Error, too many aspect values for this song
+Dance for, Psychotherapeutic,6,0,4,6,10,4Error, too many aspect values for this song
+I Remember, Clot Tenuousness,4,3,2,6,7,4Error, too many aspect values for this song
+First, Cavalrymen Greenbriar,7,9,0,3,9,3Error, too many aspect values for this song
+Dreams of, Postmortem Demarcate,5,0,1,10,1,5Error, too many aspect values for this song
+Heat of, Orneriness Subassembly,4,3,2,7,9,3Error, too many aspect values for this song
+Family of Inebriation Twirly,8.3,0,2,9,1,1   (Error: there are non-integer characters on this line)
+Dreams of, Jounced Wallies,3,1,7,3,5,0Error, too many aspect values for this song
