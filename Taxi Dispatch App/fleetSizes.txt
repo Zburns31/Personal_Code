@@ -1,0 +1,3 @@
+buses 30
+trucks 40
+taxis 120

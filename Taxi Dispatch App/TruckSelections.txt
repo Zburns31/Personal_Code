@@ -1,0 +1,122 @@
+TruckRequest(stateID=1, destCity=Dunchurch, mass=98kg) cannot be statisfied.
+stateID=1, vehicleID=2321, assignedShip=109kg, unusedBeforeShip=1000kg, unusedAfterShip891kg
+stateID=1, vehicleID=2176, assignedShip=79kg, unusedBeforeShip=800kg, unusedAfterShip721kg
+stateID=1, vehicleID=1124, assignedShip=97kg, unusedBeforeShip=750kg, unusedAfterShip653kg
+stateID=1, vehicleID=3796, assignedShip=102kg, unusedBeforeShip=900kg, unusedAfterShip798kg
+stateID=1, vehicleID=2195, assignedShip=91kg, unusedBeforeShip=1000kg, unusedAfterShip909kg
+stateID=1, vehicleID=3026, assignedShip=102kg, unusedBeforeShip=950kg, unusedAfterShip848kg
+stateID=1, vehicleID=2321, assignedShip=167kg, unusedBeforeShip=1000kg, unusedAfterShip833kg
+stateID=1, vehicleID=1493, assignedShip=84kg, unusedBeforeShip=950kg, unusedAfterShip866kg
+stateID=1, vehicleID=1249, assignedShip=37kg, unusedBeforeShip=800kg, unusedAfterShip763kg
+stateID=1, vehicleID=3975, assignedShip=35kg, unusedBeforeShip=850kg, unusedAfterShip815kg
+stateID=1, vehicleID=1501, assignedShip=18kg, unusedBeforeShip=700kg, unusedAfterShip682kg
+stateID=1, vehicleID=3975, assignedShip=92kg, unusedBeforeShip=850kg, unusedAfterShip758kg
+stateID=1, vehicleID=1249, assignedShip=120kg, unusedBeforeShip=800kg, unusedAfterShip680kg
+stateID=1, vehicleID=2195, assignedShip=182kg, unusedBeforeShip=1000kg, unusedAfterShip818kg
+stateID=1, vehicleID=2058, assignedShip=84kg, unusedBeforeShip=900kg, unusedAfterShip816kg
+stateID=1, vehicleID=2779, assignedShip=33kg, unusedBeforeShip=900kg, unusedAfterShip867kg
+stateID=1, vehicleID=3404, assignedShip=99kg, unusedBeforeShip=950kg, unusedAfterShip851kg
+stateID=1, vehicleID=1493, assignedShip=175kg, unusedBeforeShip=950kg, unusedAfterShip775kg
+stateID=1, vehicleID=3796, assignedShip=208kg, unusedBeforeShip=900kg, unusedAfterShip692kg
+stateID=1, vehicleID=3788, assignedShip=110kg, unusedBeforeShip=900kg, unusedAfterShip790kg
+stateID=1, vehicleID=2176, assignedShip=145kg, unusedBeforeShip=800kg, unusedAfterShip655kg
+TruckRequest(stateID=1, destCity=Havelock, mass=62kg) cannot be statisfied.
+stateID=1, vehicleID=3026, assignedShip=183kg, unusedBeforeShip=950kg, unusedAfterShip767kg
+stateID=1, vehicleID=2321, assignedShip=278kg, unusedBeforeShip=1000kg, unusedAfterShip722kg
+stateID=1, vehicleID=2058, assignedShip=143kg, unusedBeforeShip=900kg, unusedAfterShip757kg
+stateID=1, vehicleID=3975, assignedShip=157kg, unusedBeforeShip=850kg, unusedAfterShip693kg
+stateID=1, vehicleID=2195, assignedShip=252kg, unusedBeforeShip=1000kg, unusedAfterShip748kg
+stateID=1, vehicleID=3404, assignedShip=204kg, unusedBeforeShip=950kg, unusedAfterShip746kg
+stateID=1, vehicleID=1501, assignedShip=29kg, unusedBeforeShip=700kg, unusedAfterShip671kg
+stateID=1, vehicleID=3316, assignedShip=51kg, unusedBeforeShip=800kg, unusedAfterShip749kg
+stateID=1, vehicleID=1249, assignedShip=198kg, unusedBeforeShip=800kg, unusedAfterShip602kg
+stateID=1, vehicleID=3316, assignedShip=112kg, unusedBeforeShip=800kg, unusedAfterShip688kg
+TruckRequest(stateID=1, destCity=Huntsville, mass=60kg) cannot be statisfied.
+TruckRequest(stateID=2, destCity=Waupoos, mass=30kg) cannot be statisfied.
+stateID=2, vehicleID=2779, assignedShip=470kg, unusedBeforeShip=478kg, unusedAfterShip430kg
+stateID=2, vehicleID=1156, assignedShip=284kg, unusedBeforeShip=533kg, unusedAfterShip516kg
+stateID=2, vehicleID=2750, assignedShip=289kg, unusedBeforeShip=489kg, unusedAfterShip411kg
+stateID=2, vehicleID=1156, assignedShip=351kg, unusedBeforeShip=533kg, unusedAfterShip449kg
+stateID=2, vehicleID=1249, assignedShip=403kg, unusedBeforeShip=467kg, unusedAfterShip397kg
+TruckRequest(stateID=2, destCity=Tweed, mass=54kg) cannot be statisfied.
+stateID=2, vehicleID=3316, assignedShip=273kg, unusedBeforeShip=428kg, unusedAfterShip327kg
+stateID=2, vehicleID=1493, assignedShip=559kg, unusedBeforeShip=326kg, unusedAfterShip291kg
+stateID=2, vehicleID=3475, assignedShip=353kg, unusedBeforeShip=490kg, unusedAfterShip397kg
+stateID=2, vehicleID=3796, assignedShip=307kg, unusedBeforeShip=451kg, unusedAfterShip393kg
+stateID=2, vehicleID=1156, assignedShip=391kg, unusedBeforeShip=533kg, unusedAfterShip409kg
+stateID=2, vehicleID=1156, assignedShip=446kg, unusedBeforeShip=533kg, unusedAfterShip354kg
+stateID=2, vehicleID=2750, assignedShip=314kg, unusedBeforeShip=489kg, unusedAfterShip386kg
+stateID=2, vehicleID=3316, assignedShip=334kg, unusedBeforeShip=428kg, unusedAfterShip266kg
+TruckRequest(stateID=2, destCity=Waupoos, mass=24kg) cannot be statisfied.
+stateID=3, vehicleID=1527, assignedShip=360kg, unusedBeforeShip=746kg, unusedAfterShip640kg
+stateID=3, vehicleID=1527, assignedShip=432kg, unusedBeforeShip=746kg, unusedAfterShip568kg
+stateID=3, vehicleID=1527, assignedShip=473kg, unusedBeforeShip=746kg, unusedAfterShip527kg
+stateID=3, vehicleID=1527, assignedShip=499kg, unusedBeforeShip=746kg, unusedAfterShip501kg
+stateID=3, vehicleID=3026, assignedShip=266kg, unusedBeforeShip=408kg, unusedAfterShip384kg
+stateID=3, vehicleID=1506, assignedShip=644kg, unusedBeforeShip=395kg, unusedAfterShip306kg
+stateID=3, vehicleID=1527, assignedShip=564kg, unusedBeforeShip=746kg, unusedAfterShip436kg
+stateID=3, vehicleID=1249, assignedShip=293kg, unusedBeforeShip=486kg, unusedAfterShip407kg
+stateID=3, vehicleID=1501, assignedShip=397kg, unusedBeforeShip=292kg, unusedAfterShip253kg
+stateID=3, vehicleID=2779, assignedShip=227kg, unusedBeforeShip=450kg, unusedAfterShip373kg
+stateID=3, vehicleID=3788, assignedShip=460kg, unusedBeforeShip=547kg, unusedAfterShip490kg
+stateID=3, vehicleID=2321, assignedShip=307kg, unusedBeforeShip=446kg, unusedAfterShip393kg
+stateID=3, vehicleID=1527, assignedShip=638kg, unusedBeforeShip=746kg, unusedAfterShip362kg
+stateID=3, vehicleID=858, assignedShip=442kg, unusedBeforeShip=499kg, unusedAfterShip408kg
+stateID=3, vehicleID=1249, assignedShip=370kg, unusedBeforeShip=486kg, unusedAfterShip330kg
+stateID=3, vehicleID=3533, assignedShip=372kg, unusedBeforeShip=391kg, unusedAfterShip278kg
+stateID=3, vehicleID=2782, assignedShip=262kg, unusedBeforeShip=541kg, unusedAfterShip488kg
+stateID=3, vehicleID=546, assignedShip=251kg, unusedBeforeShip=355kg, unusedAfterShip249kg
+stateID=4, vehicleID=3533, assignedShip=307kg, unusedBeforeShip=629kg, unusedAfterShip593kg
+stateID=4, vehicleID=3520, assignedShip=293kg, unusedBeforeShip=599kg, unusedAfterShip557kg
+stateID=4, vehicleID=2585, assignedShip=485kg, unusedBeforeShip=596kg, unusedAfterShip515kg
+stateID=4, vehicleID=2195, assignedShip=501kg, unusedBeforeShip=592kg, unusedAfterShip499kg
+TruckRequest(stateID=4, destCity=Cobden, mass=26kg) cannot be statisfied.
+stateID=4, vehicleID=2195, assignedShip=581kg, unusedBeforeShip=592kg, unusedAfterShip419kg
+stateID=4, vehicleID=3788, assignedShip=325kg, unusedBeforeShip=539kg, unusedAfterShip425kg
+stateID=4, vehicleID=2782, assignedShip=276kg, unusedBeforeShip=497kg, unusedAfterShip474kg
+stateID=4, vehicleID=3475, assignedShip=387kg, unusedBeforeShip=422kg, unusedAfterShip363kg
+stateID=4, vehicleID=3316, assignedShip=377kg, unusedBeforeShip=579kg, unusedAfterShip473kg
+TruckRequest(stateID=5, destCity=Flinton, mass=16kg) cannot be statisfied.
+stateID=5, vehicleID=1244, assignedShip=262kg, unusedBeforeShip=495kg, unusedAfterShip438kg
+stateID=5, vehicleID=1506, assignedShip=373kg, unusedBeforeShip=612kg, unusedAfterShip577kg
+stateID=5, vehicleID=3026, assignedShip=363kg, unusedBeforeShip=526kg, unusedAfterShip437kg
+stateID=5, vehicleID=3026, assignedShip=441kg, unusedBeforeShip=526kg, unusedAfterShip359kg
+TruckRequest(stateID=5, destCity=Roseneath, mass=19kg) cannot be statisfied.
+stateID=5, vehicleID=3026, assignedShip=493kg, unusedBeforeShip=526kg, unusedAfterShip307kg
+stateID=5, vehicleID=1137, assignedShip=608kg, unusedBeforeShip=444kg, unusedAfterShip342kg
+TruckRequest(stateID=5, destCity=Bala, mass=29kg) cannot be statisfied.
+stateID=6, vehicleID=1156, assignedShip=308kg, unusedBeforeShip=399kg, unusedAfterShip292kg
+stateID=6, vehicleID=3779, assignedShip=477kg, unusedBeforeShip=542kg, unusedAfterShip473kg
+stateID=6, vehicleID=2058, assignedShip=250kg, unusedBeforeShip=319kg, unusedAfterShip300kg
+stateID=6, vehicleID=3796, assignedShip=347kg, unusedBeforeShip=662kg, unusedAfterShip553kg
+stateID=6, vehicleID=3796, assignedShip=461kg, unusedBeforeShip=662kg, unusedAfterShip439kg
+stateID=6, vehicleID=1156, assignedShip=413kg, unusedBeforeShip=399kg, unusedAfterShip187kg
+TruckRequest(stateID=6, destCity=Combermere, mass=86kg) cannot be statisfied.
+stateID=6, vehicleID=2782, assignedShip=314kg, unusedBeforeShip=543kg, unusedAfterShip436kg
+stateID=6, vehicleID=1051, assignedShip=452kg, unusedBeforeShip=508kg, unusedAfterShip398kg
+stateID=6, vehicleID=783, assignedShip=661kg, unusedBeforeShip=245kg, unusedAfterShip139kg
+stateID=6, vehicleID=2780, assignedShip=503kg, unusedBeforeShip=507kg, unusedAfterShip397kg
+stateID=6, vehicleID=3796, assignedShip=535kg, unusedBeforeShip=662kg, unusedAfterShip365kg
+stateID=6, vehicleID=2058, assignedShip=340kg, unusedBeforeShip=319kg, unusedAfterShip210kg
+stateID=6, vehicleID=3026, assignedShip=437kg, unusedBeforeShip=263kg, unusedAfterShip163kg
+stateID=6, vehicleID=2782, assignedShip=413kg, unusedBeforeShip=543kg, unusedAfterShip337kg
+stateID=6, vehicleID=3533, assignedShip=238kg, unusedBeforeShip=411kg, unusedAfterShip312kg
+stateID=6, vehicleID=2321, assignedShip=349kg, unusedBeforeShip=270kg, unusedAfterShip201kg
+stateID=6, vehicleID=858, assignedShip=673kg, unusedBeforeShip=216kg, unusedAfterShip127kg
+stateID=6, vehicleID=2321, assignedShip=434kg, unusedBeforeShip=270kg, unusedAfterShip116kg
+stateID=6, vehicleID=3779, assignedShip=493kg, unusedBeforeShip=542kg, unusedAfterShip457kg
+stateID=6, vehicleID=546, assignedShip=402kg, unusedBeforeShip=570kg, unusedAfterShip498kg
+stateID=6, vehicleID=1750, assignedShip=524kg, unusedBeforeShip=423kg, unusedAfterShip376kg
+stateID=6, vehicleID=659, assignedShip=523kg, unusedBeforeShip=405kg, unusedAfterShip377kg
+stateID=6, vehicleID=1051, assignedShip=520kg, unusedBeforeShip=508kg, unusedAfterShip330kg
+stateID=6, vehicleID=546, assignedShip=439kg, unusedBeforeShip=570kg, unusedAfterShip461kg
+stateID=6, vehicleID=2780, assignedShip=592kg, unusedBeforeShip=507kg, unusedAfterShip308kg
+stateID=6, vehicleID=659, assignedShip=546kg, unusedBeforeShip=405kg, unusedAfterShip354kg
+stateID=6, vehicleID=1156, assignedShip=456kg, unusedBeforeShip=399kg, unusedAfterShip144kg
+stateID=6, vehicleID=1156, assignedShip=475kg, unusedBeforeShip=399kg, unusedAfterShip125kg
+stateID=6, vehicleID=546, assignedShip=525kg, unusedBeforeShip=570kg, unusedAfterShip375kg
+stateID=6, vehicleID=3026, assignedShip=533kg, unusedBeforeShip=263kg, unusedAfterShip67kg
+stateID=6, vehicleID=1750, assignedShip=596kg, unusedBeforeShip=423kg, unusedAfterShip304kg
+stateID=6, vehicleID=2182, assignedShip=427kg, unusedBeforeShip=365kg, unusedAfterShip273kg
+TruckRequest(stateID=6, destCity=Maxville, mass=22kg) cannot be statisfied.
+stateID=6, vehicleID=858, assignedShip=737kg, unusedBeforeShip=216kg, unusedAfterShip63kg
