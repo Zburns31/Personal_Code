@@ -129,11 +129,12 @@ class DatasetCleaner():
 
         metadata_df['year'] = pd.to_numeric(metadata_df['release_date'].apply(
                                                 lambda x: str(x).split('-')[0] if x != np.nan else np.nan),
-                                            errors = 'coerce')
+                                            errors = 'coerce').fillna(0)
+        
+        # Need to convert to numeric/float to handle NaN's first, fill the null values with 0 and then convert to int
+        metadata_df['year'] = metadata_df['year'].astype('int')
                                                     
-
         tags_df = tags_df.rename(columns = {'movieId': 'id'})
-
 
         # need to make sure ID columns are of all type INT before joining into 1 table
         # TODO:  This wont work for some reason
