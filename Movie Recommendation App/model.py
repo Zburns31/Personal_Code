@@ -19,9 +19,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
 from nltk.stem.snowball import SnowballStemmer
-from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.stem.wordnet import WordNetLemmatizer as wnl
 from nltk.corpus import wordnet
+from stop_words import get_stop_words
 
+stop_words = list(get_stop_words('en'))
+
+import string
 import pandas as pd
 import numpy as np
 from ast import literal_eval
@@ -60,11 +64,18 @@ class ModelBuilder():
         
         return df.drop(target_col, axis=1)
 
-    
-    
+    def remove_stop_words(self, df, cols):
+        """ Helper function for removing stop words and punctuation
+        """ 
+        for col in cols:
+            
+            df[col] = df[col].astype('str') 
+            df[col] = df[col].apply(lambda x: [word for word in x.split() if word not in stop_words])
+            df[col] = df[col].apply(lambda x: [''.join(c for c in s if c not in string.punctuation) for s in x])
+            df[col] = df[col].apply(lambda x: list(filter(None, x)))
 
+        return df
 
-    
 
     def run(self, model_type, save_sim_matrix, data):
 
@@ -77,10 +88,11 @@ class ModelBuilder():
             df[col] = df[col].fillna('[]').apply(lambda x: literal_eval(x))
 
         new_df = self.explode_col_lis_to_feats(df, 'genres')
+        cleaned_df = self.remove_stop_words(new_df, cols = ['overview', 'keywords'])
 
 
 
-        return new_df
+        return cleaned_df
 
 
 
