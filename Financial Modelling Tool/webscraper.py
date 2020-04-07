@@ -3,6 +3,7 @@
 import requests
 import bs4
 import lxml
+import re
 from requests.exceptions import HTTPError
 from collections import defaultdict
 
@@ -143,11 +144,16 @@ def retrieve_stock_data(ticker):
                                                    headers = headers, 
                                                    parser = parser
     )
-    return income_statement_bs_obj
+    
+    income_statement_data, table_headers = get_financial_statements_data(income_statement_bs_obj, 'income_statement')
+    return income_statement_data, table_headers
 
-def get_financial_statements_data(bs_object, 
+def get_financial_statements_data(bs_object,
+                                  financial_statement,
                                   row_tag = 'div', 
-                                  row_class = {'class': 'D(tbr) fi-row Bgc($hoverBgColor):h'}):
+                                  row_class = {'class': 'D(tbr) fi-row Bgc($hoverBgColor):h'},
+                                  header_tag = 'div', 
+                                  header_class = {'class': 'D(tbr) C($primaryColor)'}):
 
     """ Retrieve financial statment data from the financials tab in yahoo finance. 
         Will scrape data from income statement, balance sheet and cash flow statement
@@ -160,20 +166,35 @@ def get_financial_statements_data(bs_object,
                 - Balance sheet
                 - Cash flow statement
     """
+    if financial_statement == 'income_statement':
+        pass
+
+    header = bs_object.find_all(header_tag, header_class)
+    #Returns a list object, so we need to slice it to get our data
+    header_data = header[0]
+    headers = [header.text for header in header_data]
+    # Get rid of the breakdown/first column header
+    headers = headers[1:]
+    
     # Here we set the recursive flag to be True so we can keep more than just the direct children 
     # (default is False)
-    line_item = bs_object.find_all(row_tag, row_class, recursive = True)
+    table_rows = bs_object.find_all(row_tag, row_class, recursive = True)
 
-    line_item_name_class = """D(tbc) Ta(start) Pend(15px)--mv2 Pend(10px) Bxz(bb) Py(8px) Bdends(s) Bdbs(s) 
-                              Bdstarts(s) Bdstartw(1px) Bdbw(1px) Bdendw(1px) Bdc($seperatorColor) Pos(st) 
-                              Start(0) Bgc($lv2BgColor) fi-row:h_Bgc($hoverBgColor) Pstart(15px)--mv2 Pstart(10px)"""
+    financial_statement_dict = {}
 
-    line_item_name = line_item.find_all('div', {'class': line_item_name_class})[0].text
-    line_item_values = line_item.find
+    for row in table_rows:
+        row_data = []
+        row_data.extend([cell.text for cell in row])
+        financial_statement_dict[row_data[0]] = row_data[1:]
+    
+    clean_financial_statement_data = {}
+    for key, values in financial_statement_dict.items():
+        values = ['N/A' if x == '-' else x for x in values]
+        clean_financial_statement_data[key] = values
 
-    return line
+    return clean_financial_statement_data, headers
     
 
 
 
-data = retrieve_stock_data('AAPL')
+data, headers = retrieve_stock_data('AAPL')
