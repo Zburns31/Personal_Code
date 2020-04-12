@@ -81,6 +81,8 @@ def get_summary_stock_data(lhs_table, rhs_table):
     # Remove the -value from each metric name. Need a function since tuples are immutable
     # apply the function to the first element of each tuple in the list (metric_name)
     def clean_metric_name_func(x): return x.split("-")[0]
+
+    # lower case and capitalize the metric name to stay consistent with other values
     clean_metrics_lis = [(clean_metric_name_func(item).lower().capitalize(), value)
                          for item, value in stock_metrics_lis]
 
@@ -240,10 +242,15 @@ def dict_to_dataframe(data_dict):
 ################################################################################################################
 
 
-def retrieve_stock_data(ticker, financial_statements_dict_map=financial_statements_dict):
-    """ TODO: documentation
+def retrieve_stock_data(ticker):
+    """ Main function to scrape required data for the given stock ticker
+
+        We use the BS4 and requests library to load HTML pages into a BS object. We can then use this to
+        easily find the data we are looking for
+
+        Ticker:
+            ticker: stock ticker to scrape data for
     """
-    financial_statements_data_dict = {}
 
     headers = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
@@ -363,7 +370,7 @@ def retrieve_stock_data(ticker, financial_statements_dict_map=financial_statemen
     bal_sh_df = dict_to_dataframe(balance_sheet_data)
     cash_flow_df = dict_to_dataframe(cash_flow_data)
 
-    return income_st_df, bal_sh_df, cash_flow_df
+    return income_st_df, bal_sh_df, cash_flow_df, company_stats
 
 
-income_st_df, bal_sh_df, cash_flow_df = retrieve_stock_data('AAPL')
+income_st_df, bal_sh_df, cash_flow_df, stats = retrieve_stock_data('AAPL')
