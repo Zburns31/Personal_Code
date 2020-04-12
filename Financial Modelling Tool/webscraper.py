@@ -9,48 +9,6 @@ from collections import defaultdict
 from collections import OrderedDict
 
 ################################################################################################################
-# List of data elements to keep for web scraping
-balance_sheet_line_items = [
-    "Cash And Cash Equivalents", "Other Short Term Investments", "Total Cash", "Net Receivables",
-    "Inventory", "Other Current Assets", "Total Current Assets", "Gross property, plant and equipment",
-    "Net property, plant and equipment", "Accumulated Depreciation", "Net property, plant and equipment",
-    "Equity and other investments", "Goodwill", "Intangible Assets", "Other long-term assets",
-    "Total non-current assets", "Total Assets", "Current Debt", "Accounts Payable", "Accrued liabilities",
-    "Deferred revenues", "Other Current Liabilities", "Total Current Liabilities", "Long Term Debt",
-    "Deferred taxes liabilities", "Deferred revenues", "Other long-term liabilities",
-    "Total non-current liabilities", "Total Liabilities", "Common Stock", "Retained Earnings",
-    "Accumulated other comprehensive income", "Total stockholders' equity",
-    "Total liabilities and stockholders' equity",
-
-]
-
-income_statement_line_items = [
-    "Total Revenue", "Cost of Revenue", "Gross Profit", "Research Development", "Selling General and Administrative",
-    "Total Operating Expenses", "Operating Income or Loss", "Interest Expense", "Total Other Income/Expenses Net",
-    "Income Before Tax", "Income Tax Expense", "Income from Continuing Operations", "Net Income",
-    "Net Income available to common shareholders", "Basic EPS", "Diluted EPS", "Basic Average Shares",
-    "Diluted Average Shares", "EBITDA"
-]
-
-cash_flow_line_items = [
-    "Net Income", "Depreciation & amortization", "Deferred income taxes", "Stock based compensation",
-    "Change in working capital", "Accounts receivable", "Inventory", "Accounts Payable",
-    "Other working capital", "Other non-cash items", "Net cash provided by operating activites",
-    "Investments in property, plant and equipment", "Acquisitions, net", "Purchases of investments",
-    "Sales/Maturities of investments", "Other investing activites", "Net cash used for investing activites",
-    "Debt repayment", "Common stock issued", "Common stock repurchased", "Dividends Paid",
-    "Other financing activites", "Net cash used privided by (used for) financing activities",
-    "Net change in cash", "Cash at beginning of period", "Cash at end of period", "Operating Cash Flow",
-    "Capital Expenditure", "Free Cash Flow"
-]
-
-
-financial_statements_dict = {
-    'Balance Sheet': balance_sheet_line_items,
-    'Income Statement': income_statement_line_items,
-    'Cash Flow Statement': cash_flow_line_items
-}
-################################################################################################################
 
 
 def load_html_page_to_bs(url, sub_page, headers, parser='html.parser'):
@@ -138,9 +96,24 @@ def get_key_stock_stats(bs_object, row_tag='tr', cell_tag='td'):
 ################################################################################################################
 
 
+def get_financial_statement_line_items(bs_object, tag='div'):
+    """ Function to retrieve all line items for the given financial statement
+    """
+    line_items = bs_object.find_all(tag, title=True)
+
+    line_item_lis = []
+    for item in line_items:
+        line_item_lis.append(item.string)
+
+    clean_line_items = list(filter(None, line_item_lis))
+
+    return clean_line_items
+################################################################################################################
+
+
 def parse_financial_statements(bs_object,
                                financial_statement,
-                               fin_statement_dict=financial_statements_dict,
+                               fin_st_line_items,
                                periods=['Annual', 'ttm'],
                                tag='div'):
     """ Retrieve financial statment data from the financials tab in yahoo finance.
@@ -152,12 +125,12 @@ def parse_financial_statements(bs_object,
                 - Income statement
                 - Balance sheet
                 - Cash flow statement
-            - fin_statement_dict: Dictionary of line items to retrieve data for for each financial statement
+            - fin_st_line_items: List of line items to retrieve data for for each financial statement
             - periods: Keep header columns from table and keep ttm to see if present in the table
             -tag: Type of tag where data can be found from
     """
     all_elements = []
-    line_items_to_keep = fin_statement_dict[financial_statement] + periods
+    line_items_to_keep = fin_st_line_items + periods
 
     # We know the the data we want to find is located under the div tag, so we need to search through and
     # find what we need
@@ -289,35 +262,50 @@ def retrieve_stock_data(ticker, financial_statements_dict_map=financial_statemen
 
     ############################################################################################################
     # Financial Statements Web Scraping
+
+    # Income Statement
     income_statement_bs_obj = load_html_page_to_bs(url=stock_data_loc,
                                                    sub_page='financials',
                                                    headers=headers,
                                                    parser=parser)
-    income_st_data = parse_financial_statements(income_statement_bs_obj,
-                                                'Income Statement',
-                                                fin_statement_dict=financial_statements_dict_map)
 
+    income_st_line_items = get_financial_statement_line_items(
+        income_statement_bs_obj)
+
+    income_st_data = parse_financial_statements(bs_object=income_statement_bs_obj,
+                                                financial_statement='Income Statement',
+                                                fin_st_line_items=income_st_line_items)
+############################################################################################################
+    # Balance Sheet
     balance_sheet_bs_obj = load_html_page_to_bs(url=stock_data_loc,
                                                 sub_page='balance-sheet',
                                                 headers=headers,
                                                 parser=parser)
 
-    balance_sheet_data = parse_financial_statements(balance_sheet_bs_obj,
-                                                    'Balance Sheet',
-                                                    fin_statement_dict=financial_statements_dict_map)
+    balance_sheet_line_items = get_financial_statement_line_items(
+        balance_sheet_bs_obj)
 
+    balance_sheet_data = parse_financial_statements(bs_object=balance_sheet_bs_obj,
+                                                    financial_statement='Balance Sheet',
+                                                    fin_st_line_items=balance_sheet_line_items)
+############################################################################################################
+    # Cash Flow Statement
     cash_flow_bs_obj = load_html_page_to_bs(url=stock_data_loc,
                                             sub_page='cash-flow',
                                             headers=headers,
+
                                             parser=parser)
 
-    cash_flow_data = parse_financial_statements(cash_flow_bs_obj,
-                                                'Cash Flow Statement',
-                                                fin_statement_dict=financial_statements_dict_map)
+    cash_flow_st_line_items = get_financial_statement_line_items(
+        cash_flow_bs_obj)
+
+    cash_flow_data = parse_financial_statements(bs_object=cash_flow_bs_obj,
+                                                financial_statement='Cash Flow Statement',
+                                                fin_st_line_items=cash_flow_st_line_items)
 
     ############################################################################################################
 
-    return cash_flow_data
+    return income_st_data, balance_sheet_data, cash_flow_data
 
 
-data = retrieve_stock_data('AAPL')
+inc_st, bal_sh, cash_flow = retrieve_stock_data('AAPL')
