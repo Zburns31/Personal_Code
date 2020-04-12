@@ -1,13 +1,29 @@
 #!/usr/local/bin/python3
+""" This module controls the the webscraping portion of the Financial Modelling (FM) Tool. It scrapes data from a couple
+    of the sub pages for the given stock ticker on yahoo finance, including:
+        - Summary Tab
+        - Statistics
+        - Profile
+        - Financials
+            - Income Statement
+            - Balance Sheet
+            - Cash Flow Statement
+        - Analysis: TODO
+        - Holders: TODO
+        - Sustainability: TODO
+
+    At a high level, we load in each page we would like to scrape as a Beautiful Soup object and search using the library to
+    find the data we are looking for
+"""
 
 import requests
 import bs4
 import lxml
 import re
+import pandas as pd
 from requests.exceptions import HTTPError
 from collections import defaultdict
 from collections import OrderedDict
-
 ################################################################################################################
 
 
@@ -65,15 +81,10 @@ def get_summary_stock_data(lhs_table, rhs_table):
     # Remove the -value from each metric name. Need a function since tuples are immutable
     # apply the function to the first element of each tuple in the list (metric_name)
     def clean_metric_name_func(x): return x.split("-")[0]
-    clean_metrics_lis = [(clean_metric_name_func(item), value)
+    clean_metrics_lis = [(clean_metric_name_func(item).lower().capitalize(), value)
                          for item, value in stock_metrics_lis]
 
     return dict(clean_metrics_lis)
-################################################################################################################
-
-
-def get_element(bs_object, tag, tag_class):
-    return bs_object.find_all(tag, tag_class)
 ################################################################################################################
 
 
@@ -98,13 +109,20 @@ def get_key_stock_stats(bs_object, row_tag='tr', cell_tag='td'):
 
 def get_financial_statement_line_items(bs_object, tag='div'):
     """ Function to retrieve all line items for the given financial statement
+
+        Parameters:
+            bs_object: HTML webpage as a BS4 object
+            tag: which tag we want to look in to find our data
     """
+    # Look for all div elements where there is a title attribute present
     line_items = bs_object.find_all(tag, title=True)
 
+    # Add all returned items to a list
     line_item_lis = []
     for item in line_items:
         line_item_lis.append(item.string)
 
+    # Remove None values from the list and return
     clean_line_items = list(filter(None, line_item_lis))
 
     return clean_line_items
@@ -119,9 +137,9 @@ def parse_financial_statements(bs_object,
     """ Retrieve financial statment data from the financials tab in yahoo finance.
         Will scrape data from income statement, balance sheet and cash flow statement
 
-    Parameters:
-            bs_object: beautiful soup object to operate over(created from passing in html page above)
-            financial_statement: which financial statement to choose
+        Parameters:
+            - bs_object: beautiful soup object to operate over(created from passing in html page above)
+            - financial_statement: which financial statement to choose
                 - Income statement
                 - Balance sheet
                 - Cash flow statement
@@ -176,6 +194,52 @@ def parse_financial_statements(bs_object,
 ################################################################################################################
 
 
+def get_company_profile_data(bs_object,
+                             outer_tag='p',
+                             outer_tag_class={'class': 'D(ib) Va(t)'},
+                             inner_tag='span'):
+    """
+    """
+    company_profile_elements = bs_object.find_all(outer_tag, outer_tag_class)
+
+    # Need to find all span class instances within the result set. This is where the data
+    # needed is actually stored
+    company_profile_elements = company_profile_elements[0].find_all(inner_tag)
+
+    company_profile_data = [item.text for item in company_profile_elements]
+
+    # Cant use sets because they are unordered
+    # Can use regular dictionary as of Python 3.7 since it guarantees ordering
+    # https://stackoverflow.com/questions/7961363/removing-duplicates-in-lists
+    # Basically maps all items in the list to dict keys and then back to list
+    # This works because keys cannot be the same and will remove duplicates
+    company_profile_data = list(OrderedDict.fromkeys(company_profile_data))
+    # Take every other element and assign as either the key or value
+    company_profile_dict = dict(zip(company_profile_data[::2],
+                                    company_profile_data[1::2])
+                                )
+
+    return company_profile_dict
+################################################################################################################
+
+
+def dict_to_dataframe(data_dict):
+    """ Function to transform dictionary of data into a DF. Used after parsing the financial statements
+    """
+
+    row_to_start = 0
+    columns = []
+
+    if all(isinstance(item, str) for item in data_dict[0]):
+        row_to_start = 1
+        columns = list(data_dict[0])
+
+    df = pd.DataFrame(data_dict[row_to_start:], columns=columns)
+
+    return df
+################################################################################################################
+
+
 def retrieve_stock_data(ticker, financial_statements_dict_map=financial_statements_dict):
     """ TODO: documentation
     """
@@ -197,6 +261,8 @@ def retrieve_stock_data(ticker, financial_statements_dict_map=financial_statemen
     stock_data_loc = f'https://ca.finance.yahoo.com/quote/{ticker}'
     parser = "html.parser"
 
+############################################################################################################
+# Getting Stock statistics (Summary Tab, Key Statistics and Profile)
     # Load default stock quote page into a beautiful soup object
     stock_info = load_html_page_to_bs(url=stock_data_loc,
                                       sub_page=None,
@@ -208,32 +274,15 @@ def retrieve_stock_data(ticker, financial_statements_dict_map=financial_statemen
                                                    headers=headers,
                                                    parser=parser)
 
-    company_profile_data = get_element(company_profile_element,
-                                       tag='p',
-                                       tag_class={'class': 'D(ib) Va(t)'})
-    # Need to find all span class instances within the result set. This is where the data
-    # needed is actually stored
-    company_profile_data = [
-        item.text for item in company_profile_data[0].find_all('span')]
-
-    # Cant use sets because they are unordered
-    # Can use regular dictionary as of Python 3.7 since it guarantees ordering
-    # https://stackoverflow.com/questions/7961363/removing-duplicates-in-lists
-    # Basically maps all items in the list to dict keys and then back to list
-    # This works because keys cannot be the same and will remove duplicates
-    company_profile_data = list(OrderedDict.fromkeys(company_profile_data))
-    # Take every other element and assign as either the key or value
-    company_profile_dict = dict(zip(company_profile_data[::2],
-                                    company_profile_data[1::2])
-                                )
+    company_profile_dict = get_company_profile_data(company_profile_element)
 
     # Get the current price of the stock
     current_price = stock_info.find_all(
         "span", {'class': 'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})[0].text
 
-    # TODO: create a function to find the table with given class
-    lhs_stock_table, rhs_stock_table = get_element(
-        stock_info, "table", {"class": "W(100%)"})
+    # TODO: May be able to simplify this
+    lhs_stock_table, rhs_stock_table = stock_info.find_all(
+        "table", {"class": "W(100%)"})
 
     # Need to go down a level (below tbody attribute) below the table class to find individual cells
     # and the required data we are lookng for
@@ -249,16 +298,21 @@ def retrieve_stock_data(ticker, financial_statements_dict_map=financial_statemen
         lhs_stock_table_data, rhs_stock_table_data)
 
     # Add in the company profile info into the summary data
-    summary_stock_data = summary_stock_data.update(company_profile_dict)
+    # summary_stock_data.update(company_profile_dict)
 
     # Now, we are going to scrape the key statistics page from yahoo finance
     # rename key stats argument to something like sub_page as we can reuse it
-    key_stats_stock_info = load_html_page_to_bs(url=stock_data_loc,
-                                                sub_page='key-statistics',
-                                                headers=headers,
-                                                parser=parser)
+    key_stats_stock_element = load_html_page_to_bs(url=stock_data_loc,
+                                                   sub_page='key-statistics',
+                                                   headers=headers,
+                                                   parser=parser)
 
-    key_stock_stats = get_key_stock_stats(key_stats_stock_info)
+    key_stock_stats = get_key_stock_stats(key_stats_stock_element)
+
+    company_stats = {**summary_stock_data,
+                     **company_profile_dict,
+                     **key_stock_stats,
+                     'Current Price': current_price}
 
     ############################################################################################################
     # Financial Statements Web Scraping
@@ -304,8 +358,12 @@ def retrieve_stock_data(ticker, financial_statements_dict_map=financial_statemen
                                                 fin_st_line_items=cash_flow_st_line_items)
 
     ############################################################################################################
+    # generate financial statement DF's
+    income_st_df = dict_to_dataframe(income_st_data)
+    bal_sh_df = dict_to_dataframe(balance_sheet_data)
+    cash_flow_df = dict_to_dataframe(cash_flow_data)
 
-    return income_st_data, balance_sheet_data, cash_flow_data
+    return income_st_df, bal_sh_df, cash_flow_df
 
 
-inc_st, bal_sh, cash_flow = retrieve_stock_data('AAPL')
+income_st_df, bal_sh_df, cash_flow_df = retrieve_stock_data('AAPL')
