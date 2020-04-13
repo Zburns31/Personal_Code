@@ -41,10 +41,21 @@ def get_historical_stock_data(ticker, start=start, end=end, api_key=API_KEY):
     return data
 
 
-def get_sector_performance(ticker_sector):
+def get_sector_performance(ticker_sector, api_key=API_KEY):
+    """ Function to retreive sector performance metrics for a given ticker
+
+        Parameter:
+            ticker_sector: Sector that a given ticker falls into
+            API_KEY
     """
-    """
-    return
+    # Make sure each ticker sector matches the format of the sector performance DF
+    # Capitalize the first letter of each word
+    ticker_sector = ticker_sector.lower().title()
+
+    sector_performance = web.get_sector_performance_av(api_key=api_key)
+
+    # Select specific row (sector performance metrics) with all columns
+    return sector_performance.loc[ticker_sector, :]
 
 
 stock_data = get_historical_stock_data(stock)

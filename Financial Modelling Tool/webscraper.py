@@ -21,6 +21,7 @@ import bs4
 import lxml
 import re
 import pandas as pd
+import yfinance as yf  # using for data which is difficult to scrape
 from requests.exceptions import HTTPError
 from collections import defaultdict
 from collections import OrderedDict
@@ -52,7 +53,10 @@ def load_html_page_to_bs(url, sub_page, headers, parser='html.parser'):
         print(f'Other error occurred: {err}')
 
     else:
-        print('Grabbing stock data')
+        if sub_page is None:
+            sub_page = 'summary'
+
+        print(f'Grabbing {sub_page.title()} data')
 
         response.encoding = 'utf-8'
         bs_object = bs4.BeautifulSoup(response.text, parser)
@@ -106,6 +110,35 @@ def get_key_stock_stats(bs_object, row_tag='tr', cell_tag='td'):
         stock_stats_dict[metric_name] = metric_score
 
     return stock_stats_dict
+################################################################################################################
+
+
+def get_stock_analysis_tables(bs_object):
+    """
+    """
+    data_dict = {}
+
+    analysis_page_tables = bs_object.find_all(
+        'table', {'class': 'W(100%) M(0) BdB Bdc($seperatorColor) Mb(25px)'})
+
+    for table in analysis_page_tables:
+        line_item_vals = []
+
+        # Find each row in the given table
+        rows = table.find_all('tr')
+        # headers = rows[0]
+        # header_vals = [item.text for item in headers]
+        # Header Name is item 0, vals are 1--> end
+        # data_dict[header_vals[0]] = header_vals[1:]
+
+        # row_vals = rows[1:]
+        line_item_vals = [[item.text for item in row] for row in rows]
+        line_item_dict = {line_item[0]: line_item[1:]
+                          for line_item in line_item_vals}
+
+        data_dict.update(line_item_dict)
+
+    return data_dict
 ################################################################################################################
 
 
@@ -321,7 +354,20 @@ def retrieve_stock_data(ticker):
                      **key_stock_stats,
                      'Current Price': current_price}
 
-    ############################################################################################################
+################################################################################################################
+    analysis_elements = load_html_page_to_bs(stock_data_loc,
+                                             sub_page='analysis',
+                                             headers=headers,
+                                             parser=parser)
+
+    stock_analysis_data = get_stock_analysis_tables(analysis_elements)
+################################################################################################################
+    # Using yfinance module to get hard to scrape elements
+    ticker_data = yf.Ticker(ticker)
+    ticker_recommendations = ticker_data.recommendations
+    ticker_esg_score = ticker_data.sustainability
+
+################################################################################################################
     # Financial Statements Web Scraping
 
     # Income Statement
@@ -370,7 +416,11 @@ def retrieve_stock_data(ticker):
     bal_sh_df = dict_to_dataframe(balance_sheet_data)
     cash_flow_df = dict_to_dataframe(cash_flow_data)
 
-    return income_st_df, bal_sh_df, cash_flow_df, company_stats
+    return (income_st_df, bal_sh_df, cash_flow_df,
+            company_stats, stock_analysis_data,
+            ticker_recommendations, ticker_esg_score)
 
 
-income_st_df, bal_sh_df, cash_flow_df, stats = retrieve_stock_data('AAPL')
+(income_st_df, bal_sh_df, cash_flow_df,
+ stats, analysis, analyst_recommendations,
+ esg_data) = retrieve_stock_data('AAPL')
