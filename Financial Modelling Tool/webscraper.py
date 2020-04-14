@@ -421,6 +421,8 @@ def retrieve_stock_data(ticker):
             ticker_recommendations, ticker_esg_score)
 
 
-(income_st_df, bal_sh_df, cash_flow_df,
- stats, analysis, analyst_recommendations,
- esg_data) = retrieve_stock_data('AAPL')
+if __name__ == '__main__':
+
+    (income_st_df, bal_sh_df, cash_flow_df,
+     stats, analysis, analyst_recommendations,
+     esg_data) = retrieve_stock_data('AAPL')
