@@ -47,12 +47,10 @@ def get_sector_performance(ticker_sector, api_key=API_KEY):
     ticker_sector = ticker_sector.lower().title()
 
     sector_performance = web.get_sector_performance_av(api_key=api_key)
-    print(sector_performance)
 
     # Company sector may not match returned data sector name
     sectors = list(sector_performance.index)
     company_sector = [item for item in sectors if ticker_sector in item]
-    print(company_sector)
 
     # Select specific row (sector performance metrics) with all columns
     return sector_performance.loc[company_sector, :]

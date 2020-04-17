@@ -23,8 +23,7 @@ import re
 import pandas as pd
 import yfinance as yf  # using for data which is difficult to scrape
 from requests.exceptions import HTTPError
-from collections import defaultdict
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 ################################################################################################################
 
 
@@ -284,6 +283,7 @@ def retrieve_stock_data(ticker):
         Ticker:
             ticker: stock ticker to scrape data for
     """
+    all_company_data = {}
 
     headers = {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
@@ -354,6 +354,9 @@ def retrieve_stock_data(ticker):
                      **key_stock_stats,
                      'Current Price': current_price}
 
+    # Compile into dict to organize all data
+    all_company_data['Company Financial Stats'] = company_stats
+
 ################################################################################################################
     analysis_elements = load_html_page_to_bs(stock_data_loc,
                                              sub_page='analysis',
@@ -361,12 +364,21 @@ def retrieve_stock_data(ticker):
                                              parser=parser)
 
     stock_analysis_data = get_stock_analysis_tables(analysis_elements)
+
+    # Compile into single dict for simplicity
+    all_company_data['Company Estimates'] = stock_analysis_data
 ################################################################################################################
     # Using yfinance module to get hard to scrape elements
     ticker_data = yf.Ticker(ticker)
-    ticker_recommendations = ticker_data.recommendations
-    ticker_esg_score = ticker_data.sustainability
+    ticker_esg_score = ticker_data.sustainability.reset_index()
+    ticker_esg_score.columns = ['esg_metric', 'value']
+    esg_data = dict(zip(ticker_esg_score.esg_metric, ticker_esg_score.value))
 
+    # Get analyst recommendations for the stock
+    ticker_recommendations = ticker_data.recommendations
+
+    all_company_data['ESG'] = esg_data
+    all_company_data['Recommendations'] = ticker_recommendations
 ################################################################################################################
     # Financial Statements Web Scraping
 
@@ -382,6 +394,11 @@ def retrieve_stock_data(ticker):
     income_st_data = parse_financial_statements(bs_object=income_statement_bs_obj,
                                                 financial_statement='Income Statement',
                                                 fin_st_line_items=income_st_line_items)
+
+    # Transform dictionary of data to DF
+    income_st_df = dict_to_dataframe(income_st_data)
+
+    all_company_data['Income Statement'] = income_st_df
 ############################################################################################################
     # Balance Sheet
     balance_sheet_bs_obj = load_html_page_to_bs(url=stock_data_loc,
@@ -395,6 +412,11 @@ def retrieve_stock_data(ticker):
     balance_sheet_data = parse_financial_statements(bs_object=balance_sheet_bs_obj,
                                                     financial_statement='Balance Sheet',
                                                     fin_st_line_items=balance_sheet_line_items)
+
+    # Transform dictionary of data to DF
+    bal_sh_df = dict_to_dataframe(balance_sheet_data)
+
+    all_company_data['Balance Sheet'] = bal_sh_df
 ############################################################################################################
     # Cash Flow Statement
     cash_flow_bs_obj = load_html_page_to_bs(url=stock_data_loc,
@@ -410,19 +432,15 @@ def retrieve_stock_data(ticker):
                                                 financial_statement='Cash Flow Statement',
                                                 fin_st_line_items=cash_flow_st_line_items)
 
-    ############################################################################################################
-    # generate financial statement DF's
-    income_st_df = dict_to_dataframe(income_st_data)
-    bal_sh_df = dict_to_dataframe(balance_sheet_data)
+    # Transform dictionary of data to DF
     cash_flow_df = dict_to_dataframe(cash_flow_data)
 
-    return (income_st_df, bal_sh_df, cash_flow_df,
-            company_stats, stock_analysis_data,
-            ticker_recommendations, ticker_esg_score)
+    all_company_data['Cash Flow Statement'] = cash_flow_df
+    ############################################################################################################
+
+    return all_company_data
 
 
 if __name__ == '__main__':
 
-    (income_st_df, bal_sh_df, cash_flow_df,
-     stats, analysis, analyst_recommendations,
-     esg_data) = retrieve_stock_data('AAPL')
+    data = retrieve_stock_data('AAPL')

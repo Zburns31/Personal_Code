@@ -4,8 +4,8 @@ This is the main module for the financial modelling tool.It serves as a script t
 necessary functions in order to parse or transform the data to give us the results we need
 """
 # Custom module imports
-from get_historical_data import *
-from webscraper import *
+import get_historical_data as ghd
+import webscraper as scrp
 
 # Standard imports
 import sys
@@ -19,11 +19,10 @@ def run(args):
     ticker = args.ticker
     data_volume = args.years
 
-    (income_st_df, bal_sh_df, cash_flow_df,
-     stats, analysis, analyst_recommendations, esg_data) = retrieve_stock_data(ticker)
+    company_data = scrp.retrieve_stock_data(ticker)
 
-    company_sector = stats['Sector']
-    sector_performance = get_sector_performance(company_sector)
+    company_sector = company_data['Company Financial Stats'].get('Sector')
+    sector_performance = ghd.get_sector_performance(company_sector)
     return sector_performance
 
 
