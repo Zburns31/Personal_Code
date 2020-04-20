@@ -6,6 +6,8 @@ necessary functions in order to parse or transform the data to give us the resul
 # Custom module imports
 import get_historical_data as ghd
 import webscraper as scrp
+from dcf import DcfModel
+
 
 # Standard imports
 import sys
@@ -23,7 +25,7 @@ def run(args):
 
     company_sector = company_data['Company Financial Stats'].get('Sector')
     sector_performance = ghd.get_sector_performance(company_sector)
-    return sector_performance
+    return company_data
 
 
 if __name__ == '__main__':
@@ -41,3 +43,10 @@ if __name__ == '__main__':
     print(args)
 
     data = run(args)
+    dcf = DcfModel(income_st=data['Income Statement'],
+                   balance_sheet=data['Balance Sheet'],
+                   cash_flow_st=data['Cash Flow Statement'],
+                   estimates=data['Company Estimates'])
+
+    data = dcf.main(dcf.income_st, dcf.balance_sh,
+                    dcf.cash_fl_st, dcf.estimates)

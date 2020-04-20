@@ -135,7 +135,9 @@ def get_stock_analysis_tables(bs_object):
         line_item_dict = {line_item[0]: line_item[1:]
                           for line_item in line_item_vals}
 
-        data_dict.update(line_item_dict)
+        table_name = line_item_vals[0][0]
+        # Seperate the data elements by table using their header name
+        data_dict[table_name] = line_item_dict
 
     return data_dict
 ################################################################################################################
@@ -274,7 +276,7 @@ def dict_to_dataframe(data_dict):
 ################################################################################################################
 
 
-def retrieve_stock_data(ticker):
+def retrieve_stock_data(ticker, drop_ttm=True):
     """ Main function to scrape required data for the given stock ticker
 
         We use the BS4 and requests library to load HTML pages into a BS object. We can then use this to
@@ -309,6 +311,13 @@ def retrieve_stock_data(ticker):
                                       headers=headers,
                                       parser=parser)
 
+    # Need to get the company name so that we can use it to find the company 10ks
+    company_name = stock_info.find_all(
+        'h1', {'class': 'D(ib) Fz(18px)'})[0].text
+
+    # Remove (Ticker) from string
+    clean_company_name = re.sub(r'\([^)]*\)', '', company_name).strip()
+
     company_profile_element = load_html_page_to_bs(url=stock_data_loc,
                                                    sub_page='profile',
                                                    headers=headers,
@@ -321,6 +330,7 @@ def retrieve_stock_data(ticker):
         "span", {'class': 'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})[0].text
 
     # TODO: May be able to simplify this
+    # Find the summary tables in the page so we can grab the data from it
     lhs_stock_table, rhs_stock_table = stock_info.find_all(
         "table", {"class": "W(100%)"})
 
@@ -349,10 +359,11 @@ def retrieve_stock_data(ticker):
 
     key_stock_stats = get_key_stock_stats(key_stats_stock_element)
 
-    company_stats = {**summary_stock_data,
+    company_stats = {'Company Name': clean_company_name,
+                     'Current Price': current_price,
+                     ** summary_stock_data,
                      **company_profile_dict,
-                     **key_stock_stats,
-                     'Current Price': current_price}
+                     **key_stock_stats}
 
     # Compile into dict to organize all data
     all_company_data['Company Financial Stats'] = company_stats
@@ -364,7 +375,6 @@ def retrieve_stock_data(ticker):
                                              parser=parser)
 
     stock_analysis_data = get_stock_analysis_tables(analysis_elements)
-
     # Compile into single dict for simplicity
     all_company_data['Company Estimates'] = stock_analysis_data
 ################################################################################################################
@@ -397,6 +407,10 @@ def retrieve_stock_data(ticker):
 
     # Transform dictionary of data to DF
     income_st_df = dict_to_dataframe(income_st_data)
+    income_st_df = income_st_df.set_index('Annual')
+
+    if drop_ttm:
+        income_st_df = income_st_df.drop('ttm', axis=1)
 
     all_company_data['Income Statement'] = income_st_df
 ############################################################################################################
@@ -415,6 +429,7 @@ def retrieve_stock_data(ticker):
 
     # Transform dictionary of data to DF
     bal_sh_df = dict_to_dataframe(balance_sheet_data)
+    bal_sh_df = bal_sh_df.set_index('Annual')
 
     all_company_data['Balance Sheet'] = bal_sh_df
 ############################################################################################################
@@ -434,6 +449,10 @@ def retrieve_stock_data(ticker):
 
     # Transform dictionary of data to DF
     cash_flow_df = dict_to_dataframe(cash_flow_data)
+    cash_flow_df = cash_flow_df.set_index('Annual')
+
+    if drop_ttm:
+        cash_flow_df = cash_flow_df.drop('ttm', axis=1)
 
     all_company_data['Cash Flow Statement'] = cash_flow_df
     ############################################################################################################
