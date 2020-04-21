@@ -44,9 +44,10 @@ if __name__ == '__main__':
 
     data = run(args)
     dcf = DcfModel(income_st=data['Income Statement'],
-                   balance_sheet=data['Balance Sheet'],
+                   balance_sh=data['Balance Sheet'],
                    cash_flow_st=data['Cash Flow Statement'],
                    estimates=data['Company Estimates'])
 
-    data = dcf.main(dcf.income_st, dcf.balance_sh,
-                    dcf.cash_fl_st, dcf.estimates)
+    dcf_data = dcf.main(income_st=dcf.income_st, balance_sh=dcf.balance_sh,
+                        cash_flow_st=dcf.cash_flow_st, estimates=dcf.estimates,
+                        num_projection_years=10)
