@@ -96,7 +96,7 @@ class DcfModel(object):
         for idx in range(0, len(line_item)-1):
             yoy_growth_perc = (
                 line_item[idx+1] - line_item[idx])/line_item[idx]
-            deltas.append(yoy_growth_perc)
+            deltas.append(round(yoy_growth_perc,3))
 
         return deltas
 #############################################################################################################

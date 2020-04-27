@@ -48,4 +48,4 @@ def get_company_sec_listing(company_name):
     return Company(company, company_cik)
 
 
-test = get_company_sec_listing('Apple Inc.')
+company = get_company_sec_listing('Apple Inc.')

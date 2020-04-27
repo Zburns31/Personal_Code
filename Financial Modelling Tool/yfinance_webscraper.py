@@ -11,7 +11,6 @@
         - Analysis: TODO
         - Holders: TODO
         - Sustainability: TODO
-
     At a high level, we load in each page we would like to scrape as a Beautiful Soup object and search using the library to
     find the data we are looking for
 """
@@ -29,7 +28,6 @@ from collections import defaultdict, OrderedDict
 
 def load_html_page_to_bs(url, sub_page, headers, parser='html.parser'):
     """ Function to loads an html website into a beautiful soup object with help from the requests library
-
     Parameters:
         url: location of the html page to load into a bs object
         headers: headers to pass in GET request
@@ -66,12 +64,10 @@ def load_html_page_to_bs(url, sub_page, headers, parser='html.parser'):
 
 def get_summary_stock_data(lhs_table, rhs_table):
     """ Function to retrieve the passed in metric names from the lhs and rhs of the table
-
     Parameters:
         lhs_table: should be the lhs of the summary stock table (of type bs4.element.tag)
         rhs_table: should be the lhs of the summary stock table (of type bs4.element.tag)
         metric_names" summary stock data to be retrieved/scraped
-
     It's split into lhs and rhs since the result of findall from looking for all tables (since the summary
     table is split into two seperate html tables)
     """
@@ -145,7 +141,6 @@ def get_stock_analysis_tables(bs_object):
 
 def get_financial_statement_line_items(bs_object, tag='div'):
     """ Function to retrieve all line items for the given financial statement
-
         Parameters:
             bs_object: HTML webpage as a BS4 object
             tag: which tag we want to look in to find our data
@@ -172,7 +167,6 @@ def parse_financial_statements(bs_object,
                                tag='div'):
     """ Retrieve financial statment data from the financials tab in yahoo finance.
         Will scrape data from income statement, balance sheet and cash flow statement
-
         Parameters:
             - bs_object: beautiful soup object to operate over(created from passing in html page above)
             - financial_statement: which financial statement to choose
@@ -278,10 +272,8 @@ def dict_to_dataframe(data_dict):
 
 def retrieve_stock_data(ticker, drop_ttm=True):
     """ Main function to scrape required data for the given stock ticker
-
         We use the BS4 and requests library to load HTML pages into a BS object. We can then use this to
         easily find the data we are looking for
-
         Ticker:
             ticker: stock ticker to scrape data for
     """

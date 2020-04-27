@@ -5,7 +5,8 @@ necessary functions in order to parse or transform the data to give us the resul
 """
 # Custom module imports
 import get_historical_data as ghd
-import webscraper as scrp
+import yfinance_webscraper as scrp  # import as yfin
+import tmx_webscraper as tmx
 from dcf import DcfModel
 
 
@@ -43,11 +44,14 @@ if __name__ == '__main__':
     print(args)
 
     data = run(args)
-    dcf = DcfModel(income_st=data['Income Statement'],
-                   balance_sh=data['Balance Sheet'],
-                   cash_flow_st=data['Cash Flow Statement'],
-                   estimates=data['Company Estimates'])
 
-    dcf_data = dcf.main(income_st=dcf.income_st, balance_sh=dcf.balance_sh,
-                        cash_flow_st=dcf.cash_flow_st, estimates=dcf.estimates,
-                        num_projection_years=10)
+    stock_price = data['Company Financial Stats']['Current Price']
+    shares_out = data['Company Financial Stats']['Current Price']
+    # dcf = DcfModel(income_st=data['Income Statement'],
+    #                balance_sh=data['Balance Sheet'],
+    #                cash_flow_st=data['Cash Flow Statement'],
+    #                estimates=data['Company Estimates'])
+
+    # dcf_data = dcf.main(income_st=dcf.income_st, balance_sh=dcf.balance_sh,
+    #                     cash_flow_st=dcf.cash_flow_st, estimates=dcf.estimates,
+    #                     num_projection_years=dcf.num_projection_years)
