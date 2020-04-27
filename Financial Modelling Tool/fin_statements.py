@@ -1,51 +1,47 @@
 #!/usr/local/bin/python3
+"""
+"""
 
-# edgar tool is for scraping SEC website
-from edgar import Edgar, Company
-import sys
+import json
+import requests
 
 
-# if __name__ == '__main__':
-
-def get_company_sec_listing(company_name):
-    """ Function to get SEC data for a given company
-
-        Parameters:
-            Company: The name of the company for which we want to get financial data for
+def get_jsonparsed_data(ticker, data):
     """
-    company_name = company_name.upper()
-    edgar = Edgar()
-    possible_companies = edgar.find_company_name(company_name)
+    Receive the content of ``url``, parse it as JSON and return the object.
 
-    if len(possible_companies) == 1:
-        company = possible_companies[0]
+    Parameters
+    ----------
+    ticker: Ticker of the stock to get data for
+    data: Data to retrieve from the API (historical-price-full, income-statement, etc)
+        Different data can be found here: https://financialmodelingprep.com/developer/docs/
 
-    elif len(possible_companies) == 0:
-        print("No companies found by the specified name")
-        print("")
-        print("Stopping program")
-        sys.exit()
+    Returns
+    -------
+    dict
+    """
+    headers = {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8,ml;q=0.7",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119 Safari/537.36"
+    }
 
-    else:  # if there are multiple companies returned
-        # TODO: This assumes a match will be found
-        companies = [
-            item for item in possible_companies if company_name in item]
-        # TODO: what if it returns more than 1 result
-        if len(companies) == 1:
-            company = companies[0]
+    url = f"https://financialmodelingprep.com/api/v3/{data}/{ticker}"
 
-        else:
-            print("Multiple company names returned. Please select a choice: ")
-            print("")
+    fin_statements = ['income-statement',
+                      'balance-sheet-statement', 'cash-flow-statement']
+    if data in fin_statements:
+        url = f"https://financialmodelingprep.com/api/v3/financials/{data}/{ticker}"
 
-            for idx, company in enumerate(companies):
-                print(f"Option {idx}: Company Name: {company}")
-            option = int(input("Please enter an option: "))
-            company = companies[option]
+    response = requests.get(url, headers=headers)
+    response.encoding = 'utf-8'
 
-    company_cik = edgar.get_cik_by_company_name(company)
-
-    return Company(company, company_cik)
+    return json.loads(response.content)
 
 
-company = get_company_sec_listing('Apple Inc.')
+if __name__ == '__main__':
+
+    data = get_jsonparsed_data('AAPL', 'income-statement')
