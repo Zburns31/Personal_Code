@@ -1,9 +1,11 @@
 #!/usr/local/bin/python3
-"""
+""" We call the Financial Modelling Prep API to get some of our data. We use the requests library to
+    call the API and return the requested data
 """
 
 import json
 import requests
+import pandas as pd
 
 
 def get_jsonparsed_data(ticker, data):
@@ -33,15 +35,26 @@ def get_jsonparsed_data(ticker, data):
 
     fin_statements = ['income-statement',
                       'balance-sheet-statement', 'cash-flow-statement']
+
     if data in fin_statements:
         url = f"https://financialmodelingprep.com/api/v3/financials/{data}/{ticker}"
 
     response = requests.get(url, headers=headers)
     response.encoding = 'utf-8'
 
-    return json.loads(response.content)
+    response_data = json.loads(response.content)
+
+    if data in fin_statements:
+        df = pd.DataFrame.from_dict(response_data['financials']).T
+        df.columns = df.loc['date']
+
+        # Remove the date row since we made it the column headings
+        return df.drop('date')
+
+    return response_data
 
 
 if __name__ == '__main__':
 
     data = get_jsonparsed_data('AAPL', 'income-statement')
+    data1 = get_jsonparsed_data('AAPL', 'company/rating')

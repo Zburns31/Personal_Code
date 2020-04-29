@@ -316,6 +316,11 @@ def retrieve_stock_data(ticker, drop_ttm=True):
                                                    parser=parser)
 
     company_profile_dict = get_company_profile_data(company_profile_element)
+    company_profile_dict['Company Name'] = clean_company_name
+
+    all_company_data['Company Profile'] = {'Company Name': clean_company_name,
+                                           **company_profile_dict
+                                           }
 
     # Get the current price of the stock
     current_price = stock_info.find_all(
@@ -351,10 +356,8 @@ def retrieve_stock_data(ticker, drop_ttm=True):
 
     key_stock_stats = get_key_stock_stats(key_stats_stock_element)
 
-    company_stats = {'Company Name': clean_company_name,
-                     'Current Price': current_price,
-                     ** summary_stock_data,
-                     **company_profile_dict,
+    company_stats = {'Current Price': current_price,
+                     **summary_stock_data,
                      **key_stock_stats}
 
     # Compile into dict to organize all data

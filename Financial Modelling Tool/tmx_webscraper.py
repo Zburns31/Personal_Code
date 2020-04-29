@@ -30,7 +30,7 @@ from selenium.webdriver import ActionChains
 ################################################################################################################
 
 
-def load_html_page_to_bs(page, ticker, exchange='US', parser='html.parser', headless=False):
+def load_html_page_to_bs(page, ticker, exchange='US', parser='html.parser', headless=True):
     """ Function to loads an html website into a beautiful soup object with help from the requests library
 
     Parameters:
@@ -58,21 +58,6 @@ def load_html_page_to_bs(page, ticker, exchange='US', parser='html.parser', head
     driver.get(tmx_page)
     print("Waiting for page to load")
     time.sleep(5)
-
-    # response = requests.get(url, headers=headers)
-
-    # try:
-    #     response.raise_for_status()
-
-    # except HTTPError as http_err:
-    #     print(f'HTTP error occurred: {http_err}')
-
-    # except Exception as err:
-    #     print(f'Other error occurred: {err}')
-
-    # else:
-    #     if sub_page is None:
-    #         sub_page = 'summary'
 
     print(f'Grabbing {page} data')
     bs_object = bs4.BeautifulSoup(driver.page_source, parser)
@@ -258,7 +243,7 @@ def load_page_from_dropdown_menu(driver, company_name, page, parser='html.parser
 ################################################################################################################
 
 
-def retrieve_stock_data(ticker, listing_country='US', drop_ttm=True):
+def retrieve_stock_data(ticker, listing_country='US'):
     """ Main function to scrape required data for the given stock ticker
 
         We use the BS4 and requests library to load HTML pages into a BS object. We can then use this to
@@ -309,6 +294,8 @@ def retrieve_stock_data(ticker, listing_country='US', drop_ttm=True):
     driver.close()
 
     company_profile_dict = get_company_data(company_info)
+
+    all_company_data['Company Profile'] = company_profile_dict
 ################################################################################################################
     # Financial Statements Web Scraping
 
