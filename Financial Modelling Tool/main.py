@@ -8,7 +8,7 @@ import get_historical_data as ghd
 import yfinance_webscraper as yfin_scrp  # import as yfin
 import tmx_webscraper as tmx_scrp
 import fin_statements as fin
-from dcf import DcfModel
+from ReverseDcf import ReverseDCF as RDCF
 
 
 # Standard imports
@@ -41,29 +41,29 @@ def run(args):
     ###############################################################################################
     # Organize data
 
-    consolidated_data['Company Profile'] = yfin_data['Company Profile']
-    consolidated_data['Company Financial Stats'] = yfin_data['Company Financial Stats']
-    consolidated_data['Company Estimates'] = yfin_data['Company Estimates']
-    consolidated_data['ESG Scores'] = yfin_data['ESG']
-    consolidated_data['Analyst Recommendations'] = yfin_data['Recommendations']
-    consolidated_data['Sector Performance'] = sector_performance
+    consolidated_data['Company_Profile'] = yfin_data['Company Profile']
+    consolidated_data['Company_Financial_Stats'] = yfin_data['Company Financial Stats']
+    consolidated_data['Company_Estimates'] = yfin_data['Company Estimates']
+    consolidated_data['ESG_Scores'] = yfin_data['ESG']
+    consolidated_data['Analyst_Recommendations'] = yfin_data['Recommendations']
+    consolidated_data['Sector_Performance'] = sector_performance
 
     # Getting some stats from TMX money as they are more precise
     shares_out = tmx_data['Quote Data']['Shares Out.']
     market_cap = tmx_data['Quote Data']['Market Cap1']
 
-    consolidated_data['Company Financial Stats']['Shares Outstanding'] = shares_out
-    consolidated_data['Company Financial Stats']['Market Capitalization'] = market_cap
+    consolidated_data['Company_Financial_Stats']['Shares Outstanding'] = shares_out
+    consolidated_data['Company_Financial_Stats']['Market Capitalization'] = market_cap
 
     fy_end = tmx_data['Company Profile']['Fiscal Year End']
     company_cik = tmx_data['Company Profile']['CIK']
 
-    consolidated_data['Company Profile']['Fiscal Year'] = fy_end
-    consolidated_data['Company Profile']['CIK'] = company_cik
+    consolidated_data['Company_Profile']['Fiscal Year'] = fy_end
+    consolidated_data['Company_Profile']['CIK'] = company_cik
 
-    consolidated_data['Income Statement'] = income_st
-    consolidated_data['Balance Sheet'] = balance_sh
-    consolidated_data['Cash Flow Statement'] = cash_flow_st
+    consolidated_data['Income_Statement'] = income_st
+    consolidated_data['Balance_Sheet'] = balance_sh
+    consolidated_data['Cash_Flow_Statement'] = cash_flow_st
 
     return consolidated_data
 
@@ -84,13 +84,8 @@ if __name__ == '__main__':
 
     data = run(args)
 
+    rev_dcf = RDCF(data)
 
-# stock_price = data['Company Financial Stats']['Current Price']
-# shares_out = data['Company Financial Stats']['Current Price']
-# dcf = DcfModel(income_st=data['Income Statement'],
-#                balance_sh=data['Balance Sheet'],
-#                cash_flow_st=data['Cash Flow Statement'],
-#                estimates=data['Company Estimates'])
 
 # dcf_data = dcf.main(income_st=dcf.income_st, balance_sh=dcf.balance_sh,
 #                     cash_flow_st=dcf.cash_flow_st, estimates=dcf.estimates,

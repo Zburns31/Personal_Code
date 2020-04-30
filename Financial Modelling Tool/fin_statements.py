@@ -57,4 +57,4 @@ def get_jsonparsed_data(ticker, data):
 if __name__ == '__main__':
 
     data = get_jsonparsed_data('AAPL', 'income-statement')
-    data1 = get_jsonparsed_data('AAPL', 'company/rating')
+    # data1 = get_jsonparsed_data('AAPL', 'company/rating')
