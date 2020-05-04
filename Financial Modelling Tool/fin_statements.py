@@ -47,9 +47,16 @@ def get_jsonparsed_data(ticker, data):
     if data in fin_statements:
         df = pd.DataFrame.from_dict(response_data['financials']).T
         df.columns = df.loc['date']
+        # Remove row with dates since we assigned to column headers
+        df = df.drop('date')
 
-        # Remove the date row since we made it the column headings
-        return df.drop('date')
+        for col in df.columns:
+            df[col] = df[col].astype('float')
+
+        # Reverse the order of the columns so the most recent year is on the RHS
+        df = df.iloc[:, ::-1]
+
+        return df
 
     return response_data
 

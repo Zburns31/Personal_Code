@@ -15,6 +15,46 @@ from ReverseDcf import ReverseDCF as RDCF
 import sys
 import os
 import argparse
+import re
+
+
+def clean_dict_items(dictionary):
+
+    def is_float(string):
+        """ Function to check whether a number is a float or not
+        """
+        try:
+            # True if string is a number contains a dot
+            return float(string) and '.' in string
+        except ValueError:  # String is not a number
+            return False
+
+    for key, value in dictionary.items():
+
+        if value[-1] == 'T':
+            new_value = value[:-1]
+            dictionary[key] = float(new_value) * 1000000000000
+
+        if value[-1] == 'M':
+            new_value = value[:-1]
+            dictionary[key] = float(new_value) * 1000000
+
+        if value[-1] == 'B':
+            new_value = value[:-1]
+            dictionary[key] = float(new_value) * 1000000000
+
+        if '%' in value and '(' not in value:  # need to exclude fields with ()
+            # % Remove the % sign
+            new_value = value.replace('%', '')
+            dictionary[key] = round(float(new_value)/100, 3)
+
+        if value.isdigit() or is_float(value):
+            dictionary[key] = float(value)
+
+        else:  # String has doesn't need to be converted at the moment
+            pass
+
+    return dictionary
 
 
 def run(args):
@@ -30,6 +70,10 @@ def run(args):
     # Get data
     yfin_data = yfin_scrp.retrieve_stock_data(ticker)
     tmx_data = tmx_scrp.retrieve_stock_data(ticker)
+
+    # Clean up some of the data elements contained in the dictionary
+    yfin_data['Company Financial Stats'] = clean_dict_items(
+        yfin_data['Company Financial Stats'])
 
     company_sector = tmx_data['Company Profile'].get('Sector')
     sector_performance = ghd.get_sector_performance(company_sector)
@@ -52,8 +96,10 @@ def run(args):
     shares_out = tmx_data['Quote Data']['Shares Out.']
     market_cap = tmx_data['Quote Data']['Market Cap1']
 
-    consolidated_data['Company_Financial_Stats']['Shares Outstanding'] = shares_out
-    consolidated_data['Company_Financial_Stats']['Market Capitalization'] = market_cap
+    consolidated_data['Company_Financial_Stats']['Shares Outstanding'] = float(
+        shares_out)
+    consolidated_data['Company_Financial_Stats']['Market Capitalization'] = float(
+        market_cap)
 
     fy_end = tmx_data['Company Profile']['Fiscal Year End']
     company_cik = tmx_data['Company Profile']['CIK']
@@ -85,8 +131,3 @@ if __name__ == '__main__':
     data = run(args)
 
     rev_dcf = RDCF(data)
-
-
-# dcf_data = dcf.main(income_st=dcf.income_st, balance_sh=dcf.balance_sh,
-#                     cash_flow_st=dcf.cash_flow_st, estimates=dcf.estimates,
-#                     num_projection_years=dcf.num_projection_years)

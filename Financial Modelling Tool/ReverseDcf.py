@@ -20,40 +20,98 @@ class ReverseDCF(object):
 
     def __init__(self, dictionary):
 
-        self.profile = dictionary['Company_Profile']
-        self.financial_stats = dictionary['Company_Financial_Stats']
-        self.estimates = dictionary['Company_Estimates']
-        self.esg = dictionary['ESG_Scores']
-        self.recommendations = dictionary['Analyst_Recommendations']
-        self.sector_perf = dictionary['Sector_Performance']
-        self.inc_st = dictionary['Income_Statement']
-        self.balance_sh = dictionary['Balance_Sheet']
-        self.cash_flow_st = dictionary['Cash_Flow_Statement']
+        self.date = dt.date.today()
+        self.profile = dictionary.get('Company_Profile', None)
+        self.financial_stats = dictionary.get('Company_Financial_Stats', None)
+        self.estimates = dictionary.get('Company_Estimates', None)
+        self.esg = dictionary.get('ESG_Scores', None)
+        self.recommendations = dictionary.get('Analyst_Recommendations', None)
+        self.sector_perf = dictionary.get('Sector_Performance', None)
+        self.inc_st = dictionary.get('Income_Statement', None)
+        self.balance_sh = dictionary.get('Balance_Sheet', None)
+        self.cash_flow_st = dictionary.get('Cash_Flow_Statement', None)
 
-    @property
-    def equity_value(stock_price, shares_out, market_cap):
+    # @property
+    def equity_value(self, financial_stats):
+        """ Calcuating equity value of a company. Defined as either:
+            - Market Capitalization
+            - Shares outstanding * Current share price
+
+            Parameters:
+                - financial_stats: Dictionary of company statistics (Shares Out, current price, etc.)
+                                   retrieved from the company quote, summary and statistics pages
+        """
+
+        shares_out = financial_stats.get('Shares Outstanding')
+        stock_price = financial_stats.get('Current Price')
+        market_cap = financial_stats.get('Market Capitalization')
+
         equity_value = float(stock_price * shares_out)
+
         print(
             f'Calculated Equity Value == {equity_value} Vs. Retrieved Market Capitalization == {market_cap}')
-        self.equity_value = equity_value
 
-    @property
-    def get_risk_free_rate(api_key, t_bill_yr=10, date=dt.datetime.today()):
-        fred = Fred(api_key=api_key)
-        # Need to get Risk free frate from previous day to due to lag of data publishing
-        previous_day = date - dt.timedelta(days=1)
+        return equity_value
 
-        if t_bill_yr == 10:
-            self.risk_free_rate = fred.get_series('DGS10').loc[previous_day]
+    # @property
+    def enterprise_value(self, equity_value, balance_sh):
+        """ Calcualte the Enterprise value of the company using line items from the balance sheet
+            TODO: preferred stock, noncontrolling interests
 
-        elif t_bill_yr == 5:
-            self.risk_free_rate = fred.get_series('DGS5').loc[previous_day]
+            Parameters:
+                equity_value: Market capitalization of the company
+                balance_sh: Balance sheet data
+        """
+        last_year = self.date.year - 1
+        years = balance_sh.columns
+        rel_data = [item for item in years if pd.to_datetime(item).year == 2019]
 
-        else:
-            print("Invalid Selection. Using 10 year treasury bill rate")
-            self.risk_free_rate = fred.get_series('DGS10').loc[previous_day]
+        short_term_debt = balance_sh.loc['Short-term debt', rel_data].iloc[0]
+        long_term_debt = balance_sh.loc['Long-term debt', rel_data].iloc[0]
 
-    def main(self, stock_price, shares_out):
+        cash_and_equivs = (balance_sh.loc['Cash and cash equivalents', rel_data].iloc[0] +
+                           balance_sh.loc['Short-term investments', rel_data].iloc[0])
+
+        # TODO
+        # preferred_stock =
+        # noncontrolling_interest =
+
+        return equity_value + short_term_debt + long_term_debt - cash_and_equivs
+
+    # @property
+    # def get_risk_free_rate(api_key, t_bill_yr=10, date=dt.datetime.today()):
+    #     fred = Fred(api_key=api_key)
+    #     # Need to get Risk free frate from previous day to due to lag of data publishing
+    #     previous_day = date - dt.timedelta(days=1)
+
+    #     if t_bill_yr == 10:
+    #         self.risk_free_rate = fred.get_series('DGS10').loc[previous_day]
+
+    #     elif t_bill_yr == 5:
+    #         self.risk_free_rate = fred.get_series('DGS5').loc[previous_day]
+
+    #     else:
+    #         print("Invalid Selection. Using 10 year treasury bill rate")
+    #         self.risk_free_rate = fred.get_series('DGS10').loc[previous_day]
+
+    # def main(self):
+    #     """
+    #     """
+
+    #     date = self.date()
+
+    #     self.equity_value = self.calc_equity_value()
+    #     return self
+
+        # Pass in company financial stats (quote pages, summary tables, etc) to derive equity value
+        # self.equity_value = self.get_equity_value(self.financial_stats)
+
+        # self.total
+
+        # Calculate equity value
+
+    ###############################################################################################
+    # Start Creating the Reverse DCF
 
         return
 
