@@ -18,11 +18,11 @@ import pandas as pd
 import yfinance as yf  # using for data which is difficult to scrape
 import itertools
 import time
-from selenium import webdriver
 from requests.exceptions import HTTPError
 from collections import defaultdict, OrderedDict
 
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -54,7 +54,8 @@ def load_html_page_to_bs(page, ticker, exchange='US', parser='html.parser', head
     if headless:
         options.add_argument("headless")
 
-    driver = webdriver.Chrome(options=options)
+    # driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options = options)
     driver.get(tmx_page)
     print("Waiting for page to load")
     time.sleep(5)

@@ -21,6 +21,8 @@ class ReverseDCF(object):
     def __init__(self, dictionary):
 
         self.date = dt.date.today()
+        self.terminal_growth_rate = 0.03
+
         self.profile = dictionary.get('Company_Profile', None)
         self.financial_stats = dictionary.get('Company_Financial_Stats', None)
         self.estimates = dictionary.get('Company_Estimates', None)
@@ -31,8 +33,11 @@ class ReverseDCF(object):
         self.balance_sh = dictionary.get('Balance_Sheet', None)
         self.cash_flow_st = dictionary.get('Cash_Flow_Statement', None)
 
-    # @property
-    def equity_value(self, financial_stats):
+
+
+
+
+    def get_equity_value(self, financial_stats):
         """ Calcuating equity value of a company. Defined as either:
             - Market Capitalization
             - Shares outstanding * Current share price
@@ -53,8 +58,8 @@ class ReverseDCF(object):
 
         return equity_value
 
-    # @property
-    def enterprise_value(self, equity_value, balance_sh):
+
+    def get_enterprise_value(self, equity_value, balance_sh):
         """ Calcualte the Enterprise value of the company using line items from the balance sheet
             TODO: preferred stock, noncontrolling interests
 
@@ -62,6 +67,7 @@ class ReverseDCF(object):
                 equity_value: Market capitalization of the company
                 balance_sh: Balance sheet data
         """
+
         last_year = self.date.year - 1
         years = balance_sh.columns
         rel_data = [item for item in years if pd.to_datetime(item).year == 2019]
@@ -77,6 +83,29 @@ class ReverseDCF(object):
         # noncontrolling_interest =
 
         return equity_value + short_term_debt + long_term_debt - cash_and_equivs
+
+
+    def get_debt_to_equity_ratio(self, balance_sh, ratio=None):
+
+        debt = balance_sh.loc['Total liabilities'][-1]
+        equity = balance_sh.loc['Total shareholders equity'][-1]
+
+        return debt/equity
+
+
+    def get_wacc(self, debt_to_tv, equity_to_tv, cost_of_equity, cost_of_debt, tax_rate):
+        """ Function to calculate the weighted average cost of capital
+        """
+
+        return
+
+
+
+
+
+
+
+
 
     # @property
     # def get_risk_free_rate(api_key, t_bill_yr=10, date=dt.datetime.today()):
@@ -94,21 +123,16 @@ class ReverseDCF(object):
     #         print("Invalid Selection. Using 10 year treasury bill rate")
     #         self.risk_free_rate = fred.get_series('DGS10').loc[previous_day]
 
-    # def main(self):
-    #     """
-    #     """
+    def main(self):
+        """
+        """
+        date = self.date
 
-    #     date = self.date()
+        # Start calculating required DCF data
+        equity_value = self.get_equity_value(self.financial_stats)
+        enterprise_value = self.get_enterprise_value(equity_value, self.balance_sh)
 
-    #     self.equity_value = self.calc_equity_value()
-    #     return self
 
-        # Pass in company financial stats (quote pages, summary tables, etc) to derive equity value
-        # self.equity_value = self.get_equity_value(self.financial_stats)
-
-        # self.total
-
-        # Calculate equity value
 
     ###############################################################################################
     # Start Creating the Reverse DCF

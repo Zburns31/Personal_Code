@@ -10,7 +10,6 @@ import tmx_webscraper as tmx_scrp
 import fin_statements as fin
 from ReverseDcf import ReverseDCF as RDCF
 
-
 # Standard imports
 import sys
 import os
@@ -62,6 +61,7 @@ def run(args):
     """
     ticker = args.ticker
     data_volume = args.years
+    FMP_API_KEY = os.environ.get("FMP_API_KEY")
 
     # Dict to store all data
     consolidated_data = {}
@@ -78,9 +78,9 @@ def run(args):
     company_sector = tmx_data['Company Profile'].get('Sector')
     sector_performance = ghd.get_sector_performance(company_sector)
 
-    income_st = fin.get_jsonparsed_data(ticker, 'income-statement')
-    balance_sh = fin.get_jsonparsed_data(ticker, 'balance-sheet-statement')
-    cash_flow_st = fin.get_jsonparsed_data(ticker, 'cash-flow-statement')
+    income_st = fin.get_jsonparsed_data(ticker, 'income-statement', FMP_API_KEY)
+    balance_sh = fin.get_jsonparsed_data(ticker, 'balance-sheet-statement', FMP_API_KEY)
+    cash_flow_st = fin.get_jsonparsed_data(ticker, 'cash-flow-statement', FMP_API_KEY)
 
     ###############################################################################################
     # Organize data

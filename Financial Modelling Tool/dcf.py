@@ -1,155 +1,74 @@
-""" This module is for constructing the Discounted Cash Flow Analysis template. The goal is for this template to be used
-    for any given company
-
-    Components of a DCF:
-        - Top Line Revenue (Historical and Projections into the future)
-            - TODO: breakdown into revenues by different product lines
-        - COGS
-        -
-
+""" This module is for constructing the DCF analysis for the Financial Modelling tool
 """
-from dataclasses import dataclass
-from typing import List, Dict, Any
-from statistics import mean
-import pandas as pd
 import datetime as dt
-import math
-
-pd.set_option('float_format', '{:f}'.format)
+import pandas as pd
 
 
-class DcfModel(object):
-    """ Class for holding DCF and company financial data
+
+
+class DCF(object):
+    """ Class for constructing the DCF analysis
+        Parameters:
+            - company_data: A nested dictionary containing all relevant/scraped data
+                            from other modules to feed into the model
     """
 
-    def __init__(self, income_st, balance_sh, cash_flow_st, estimates):
+    def __init__(self, company_data, terminal_growth = 0.02, forecast_horizon = 10):
+        for key in company_data:
+            setattr(self, key, company_data[key])
 
-        self.income_st = income_st
-        self.balance_sh = balance_sh
-        self.cash_flow_st = cash_flow_st
-        self.estimates = estimates
-        self.num_projection_years = 5
-    # years_of_history: int = 3
+        self.terminal_growth = terminal_growth
+        self.forecast_horizon = forecast_horizon
 
-    #############################################################################################################
-    def convert_strings_to_ints(self, df):
-        """ Helper function
+    def linear_decline_growth_forecast(self, current_year_estimate, next_year_estimate, terminal_growth, n_projections):
+        """ Formula to calculate linear decline in revenue growth based on terminal growth value
+            and number of projection periods. We use n_projections -1 since we have next years
+            estimate provided by the web scraper portion
         """
-        for col in df.columns:
-            # Need to remove commas in the strings before we cast to int
-            df[col] = df[col].apply(lambda x: ''.join(x.split(',')))
-            df[col] = df[col].astype('float')
+        decline_fig = (next_year_estimate - terminal_growth)/(n_projections - 2)
+        print(decline_fig)
+        projections = [round((next_year_estimate - decline_fig * n),3) for n in range(1, n_projections - 2)]
 
-        return df
-    #############################################################################################################
+        return [current_year_estimate, next_year_estimate] + projections
 
-    def get_time_bounds(self, df, years_to_project):
-        """ Function to determine upper and lower bounds ofr historical and projections of financial data
+    def build_proforma_income_statement(self,
+                                        inc_statement,
+                                        estimates,
+                                        projection_period = 5,
+                                        historical_periods = 3):
         """
-
-        historical_periods = [
-            period for period in df.columns if 'ttm' not in period.lower()]
-
-        # Get the most recent FY date so we can incrementally add years to it
-        last_fy_period = max([dt.datetime.strptime(item, '%Y-%m-%d').date()
-                              for item in historical_periods])
-
-        projection_periods = [
-            last_fy_period + pd.DateOffset(years=year) for year in range(1, years_to_project)]
-
-        # Convert timestamps to dates()
-        projection_periods = [str(x.date()) for x in projection_periods]
-
-        return historical_periods + projection_periods
-#############################################################################################################
-
-    def calculate_rev_growth_rates(self, projections, n_years):
-        """ Function to calculate growth rates for revenue
         """
-        # Get Nested dict values for company estimates (eps, growth, etc)
-        growth_projections = projections['Growth Estimates']
+        assert inc_statement.columns[-1] == max(inc_statement)
 
-        # AAPL figures are the first index of each list
-        current_year_growth = growth_projections.get('Current Year')[0]
-        current_year_growth = float(current_year_growth.strip('%'))
+        # Take the last N years from the Income statement to help with projections
+        cols = inc_statement.columns[-historical_periods:]
+        inc_st = inc_statement.loc[:, cols]
 
-        # need to start at current year + 1
-        next_year_projection = growth_projections.get(
-            'Next 5 Years (per annum)')[0]
+        def projections(inc_st, estimates):
 
-        next_year_projection = float(next_year_projection.strip('%'))
+            year = dt.date.today().year
+            next_year = year + 1
 
-        # Use next year projection and decrease by 1% for growth per year thereafter
-        future_projections = [(next_year_projection - projection)
-                              for projection in range(2, n_years+1)]
+            cy_idx = estimates['Revenue Estimate']['Revenue Estimate'].index(f'Current Year ({year})')
+            ny_idx = estimates['Revenue Estimate']['Revenue Estimate'].index(f'Next Year ({next_year})')
 
-        projections = [next_year_projection] + future_projections
+            current_year_sales_growth = estimates['Revenue Estimate']['Sales Growth (year/est)'][cy_idx]
+            next_year_sales_growth = estimates['Revenue Estimate']['Sales Growth (year/est)'][ny_idx]
 
-        # Need to divide figures by 100 so we can get percentages
-        projections = [round(rate/100, 3) for rate in projections]
+            def string_perc_to_float(string_val):
+                """ Function to remove % sign from strings and format the value as a float
+                """
+                return float(string_val.replace("%", ""))/100
 
-        return projections
-#############################################################################################################
+            curr_year_growth = string_perc_to_float(current_year_sales_growth)
+            next_year_growth = string_perc_to_float(next_year_sales_growth)
 
-    def calculate_growth_rates(self, line_item):
-        deltas = []
-        for idx in range(0, len(line_item)-1):
-            yoy_growth_perc = (
-                line_item[idx+1] - line_item[idx])/line_item[idx]
-            deltas.append(round(yoy_growth_perc,3))
+            return curr_year_growth, next_year_growth
 
-        return deltas
-#############################################################################################################
-
-    # expected_growth_proj
-    def calculate_revenues(self, df, num_projection_years, estimates, rev_row='Total Revenue'):
-        """ Function to retreive historical revenues and to project future revenues
-
-            TODO: Expand the ability to forecast revenues by breaking down by product
-                  line, segment, etc
-
-            Parameters:
-                df: Income statement of the given company where we can get historical
-                        revenue figures
-        """
-        revenues = list(df.loc[rev_row].values)
-        hist_growth = self.calculate_growth_rates(revenues)
-
-        future_growth_rates = self.calculate_rev_growth_rates(
-            estimates, num_projection_years)
-
-        for growth_rate in future_growth_rates:
-            # Get the last calcualted year of revenues so we can use it to calculate FY +1 revenues
-            last_fy_rev = revenues[-1]
-            next_yr_rev = last_fy_rev * (1 + growth_rate)
-            revenues.append(next_yr_rev)
-
-        revenues = [round(rev) for rev in revenues]
-        growth_rates = hist_growth + future_growth_rates
-
-        self.revenues = {'Total Revenues': revenues}
-        self.growth_rates = {'YoY Percentage Growth': growth_rates}
-
-#############################################################################################################
-    def main(self, income_st, balance_sh, cash_flow_st, estimates, num_projection_years):
-
-        self.income_st = self.convert_strings_to_ints(income_st)
-        # Reverse the order of the columns so we go from first year of available data to projections on the right
-        self.income_st = income_st.iloc[:, ::-1]
-
-        time_bounds = self.get_time_bounds(
-            self.income_st, self.num_projection_years)
-
-        self.calculate_revenues(
-            self.income_st, num_projection_years, estimates)
-
-        return self
+        return projections(inc_st, estimates)
 
 
-if __name__ == '__main__':
+dcf = DCF(data)
 
-    DCF = DcfModel(income_st=inc_st.copy(deep=True), balance_sh=None,
-                   cash_flow_st=None, estimates=estimates)
-
-    dcf = DCF.main(DCF.income_st, DCF.balance_sh,
-                   DCF.cash_flow_st, DCF.estimates, DCF.num_projection_years)
+cy, nxt = dcf.build_proforma_income_statement(dcf.Income_Statement, dcf.Company_Estimates)
+growth_ests = dcf.linear_decline_growth_forecast(cy, nxt, dcf.terminal_growth, dcf.forecast_horizon)
