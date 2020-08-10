@@ -27,10 +27,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import ActionChains
+
 ################################################################################################################
 
 
-def load_html_page_to_bs(page, ticker, exchange='US', parser='html.parser', headless=True):
+def load_html_page_to_bs(page, ticker, exchange="US", parser="html.parser", headless=True):
     """ Function to loads an html website into a beautiful soup object with help from the requests library
 
     Parameters:
@@ -45,7 +46,7 @@ def load_html_page_to_bs(page, ticker, exchange='US', parser='html.parser', head
     # Add the headless command so we dont open the browser during runtime
     options = webdriver.ChromeOptions()
     # Turn off proxy detection for faster execution
-    options.add_argument('--no-proxy-server')
+    options.add_argument("--no-proxy-server")
     options.add_argument("--disable-extensions")
     options.add_argument("--proxy-server='direct://'")
     options.add_argument("--proxy-bypass-list=*")
@@ -55,15 +56,17 @@ def load_html_page_to_bs(page, ticker, exchange='US', parser='html.parser', head
         options.add_argument("headless")
 
     # driver = webdriver.Chrome(options=options)
-    driver = webdriver.Chrome(ChromeDriverManager().install(), options = options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     driver.get(tmx_page)
     print("Waiting for page to load")
     time.sleep(5)
 
-    print(f'Grabbing {page} data')
+    print(f"Grabbing {page} data")
     bs_object = bs4.BeautifulSoup(driver.page_source, parser)
 
     return bs_object, driver
+
+
 ################################################################################################################
 
 
@@ -71,20 +74,24 @@ def parse_quote_table(ticker_quote_data):
     """ Function to parse the Detailed quote data from the TMX quote page
     """
     data = [item.text for item in ticker_quote_data]
-    clean_data = [item.replace('\n', '')
-                  .replace('\t', '')
-                  .replace(',', '')
-                  .replace('\xa0', '')
-                  .replace('USD', '')
-                  for item in data]
+    clean_data = [
+        item.replace("\n", "")
+        .replace("\t", "")
+        .replace(",", "")
+        .replace("\xa0", "")
+        .replace("USD", "")
+        for item in data
+    ]
 
-    split_data = [item.split(':') for item in clean_data]
+    split_data = [item.split(":") for item in clean_data]
 
     quote_data_dict = {data[0]: data[1] for data in split_data}
     # Remove uneeded dict item
-    del quote_data_dict['Exchange']
+    del quote_data_dict["Exchange"]
 
     return quote_data_dict
+
+
 ################################################################################################################
 
 
@@ -92,21 +99,18 @@ def get_company_data(bs_object):
     """
     """
     company_data = {}
-    company_fy_end = bs_object.find_all('div', {'class': 'col-md-6 mb-4'})[-1]
+    company_fy_end = bs_object.find_all("div", {"class": "col-md-6 mb-4"})[-1]
     # Remove empty strings
     company_fy_end = [item for item in company_fy_end if item]
-    company_fy_end = [item.text for item in company_fy_end if item != '\n']
+    company_fy_end = [item.text for item in company_fy_end if item != "\n"]
 
     # Find the first occurence of a row tag
-    company_classification_table = bs_object.find_all(
-        'div', {'class': 'col-md-4 mb-4'})
+    company_classification_table = bs_object.find_all("div", {"class": "col-md-4 mb-4"})
 
-    classification_data = [item.text.split(
-        "\n") for item in company_classification_table]
+    classification_data = [item.text.split("\n") for item in company_classification_table]
 
     merged_lis = list(itertools.chain(*classification_data))
-    clean_data = [item.replace('\t', '')
-                  for item in merged_lis if not '\t' or item]
+    clean_data = [item.replace("\t", "") for item in merged_lis if not "\t" or item]
 
     # Slice list so we can pack into dictionary with all data
     keys = clean_data[::2]
@@ -114,14 +118,15 @@ def get_company_data(bs_object):
 
     classification_dict = dict(zip(keys, vals))
 
-    company_data = {'Fiscal Year End': company_fy_end[-1],
-                    **classification_dict}
+    company_data = {"Fiscal Year End": company_fy_end[-1], **classification_dict}
 
     return company_data
+
+
 ################################################################################################################
 
 
-def get_key_stock_stats(bs_object, row_tag='tr', cell_tag='td'):
+def get_key_stock_stats(bs_object, row_tag="tr", cell_tag="td"):
     """ Function to retrieve key stock stats from the yahoo finance page
     """
     stock_stats_dict = {}
@@ -137,6 +142,8 @@ def get_key_stock_stats(bs_object, row_tag='tr', cell_tag='td'):
         stock_stats_dict[metric_name] = metric_score
 
     return stock_stats_dict
+
+
 ################################################################################################################
 
 
@@ -146,13 +153,14 @@ def get_stock_analysis_tables(bs_object):
     data_dict = {}
 
     analysis_page_tables = bs_object.find_all(
-        'table', {'class': 'W(100%) M(0) BdB Bdc($seperatorColor) Mb(25px)'})
+        "table", {"class": "W(100%) M(0) BdB Bdc($seperatorColor) Mb(25px)"}
+    )
 
     for table in analysis_page_tables:
         line_item_vals = []
 
         # Find each row in the given table
-        rows = table.find_all('tr')
+        rows = table.find_all("tr")
         # headers = rows[0]
         # header_vals = [item.text for item in headers]
         # Header Name is item 0, vals are 1--> end
@@ -160,14 +168,15 @@ def get_stock_analysis_tables(bs_object):
 
         # row_vals = rows[1:]
         line_item_vals = [[item.text for item in row] for row in rows]
-        line_item_dict = {line_item[0]: line_item[1:]
-                          for line_item in line_item_vals}
+        line_item_dict = {line_item[0]: line_item[1:] for line_item in line_item_vals}
 
         table_name = line_item_vals[0][0]
         # Seperate the data elements by table using their header name
         data_dict[table_name] = line_item_dict
 
     return data_dict
+
+
 ################################################################################################################
 
 
@@ -181,24 +190,25 @@ def parse_financial_statement(bs_object, tbody_class, driver):
     """
 
     headers = bs_object.find_all(
-        'th', {'class': 'qmod-textr qmod-report-data-heading qmod-capitalize'})
+        "th", {"class": "qmod-textr qmod-report-data-heading qmod-capitalize"}
+    )
     clean_headers = [item.text for item in headers]
 
     # Look for all div elements where there is a title attribute present
-    table_body = bs_object.find_all('tbody', {'class': tbody_class})
-    rows = table_body[0].find_all('tr')
+    table_body = bs_object.find_all("tbody", {"class": tbody_class})
+    rows = table_body[0].find_all("tr")
 
     def parse_rows(table_rows):
         row_data = []
         for row in table_rows:
-            row_elements = row.find_all('td')
+            row_elements = row.find_all("td")
 
-        # Remove chart/graph cell information as its not needed
-            cell_data = [
-                item.text for item in row_elements if 'Created' not in item.text]
+            # Remove chart/graph cell information as its not needed
+            cell_data = [item.text for item in row_elements if "Created" not in item.text]
 
-            clean_cell_data = [item.replace(
-                ',', '') if item[0].isdigit() else item.title() for item in cell_data]
+            clean_cell_data = [
+                item.replace(",", "") if item[0].isdigit() else item.title() for item in cell_data
+            ]
 
             row_data.append(clean_cell_data)
 
@@ -207,44 +217,63 @@ def parse_financial_statement(bs_object, tbody_class, driver):
     clean_fin_st_data = parse_rows(rows)
     # Convert to dict for easier conversion to DF later on
     fin_st_dict = {item[0]: item[1:] for item in clean_fin_st_data}
-    fin_st_dict['Headers'] = clean_headers
+    fin_st_dict["Headers"] = clean_headers
 
     return fin_st_dict
+
+
 ################################################################################################################
 
 
 def dict_to_dataframe(data_dict):
     """ Function to transform dictionary of data into a DF. Used after parsing the financial statements
     """
-    df = pd.DataFrame.from_dict(data_dict, orient='index')
+    df = pd.DataFrame.from_dict(data_dict, orient="index")
 
-    df = df.rename(index={'Headers': 'Period'})
-    df.columns = df.loc['Period']
+    df = df.rename(index={"Headers": "Period"})
+    df.columns = df.loc["Period"]
 
-    return df.drop('Period')
+    return df.drop("Period")
+
 
 ################################################################################################################
 
 
-def load_page_from_dropdown_menu(driver, company_name, page, parser='html.parser'):
+def load_page_from_dropdown_menu(driver, company_name, page, parser="html.parser"):
 
-    element = WebDriverWait(driver, 20).until(EC.visibility_of_element_located(
-        (By.XPATH, f"//h4[text()='Financials for {company_name}']")))
+    element = WebDriverWait(driver, 20).until(
+        EC.visibility_of_element_located(
+            (By.XPATH, f"//h4[text()='Financials for {company_name}']")
+        )
+    )
 
     driver.execute_script("window.scrollBy(0,600)")
 
-    ActionChains(driver).move_to_element(WebDriverWait(driver, 20).until(EC.visibility_of_element_located(
-        (By.XPATH, "//a[@class='qmod-dropdown_toggle qmod-type-toggle']/span[text()='Income Statement']")))).perform()
-    WebDriverWait(driver, 20).until(EC.element_to_be_clickable(
-        (By.XPATH, f"//ul[@class='qmod-dropdown-menu']//li/a[text()='{page}']"))).click()
+    ActionChains(driver).move_to_element(
+        WebDriverWait(driver, 20).until(
+            EC.visibility_of_element_located(
+                (
+                    By.XPATH,
+                    "//a[@class='qmod-dropdown_toggle qmod-type-toggle']/span[text()='Income Statement']",
+                )
+            )
+        )
+    ).perform()
+    WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable(
+            (By.XPATH, f"//ul[@class='qmod-dropdown-menu']//li/a[text()='{page}']")
+        )
+    ).click()
 
     time.sleep(5)
     page = bs4.BeautifulSoup(driver.page_source, parser)
     return page
+
+
 ################################################################################################################
 
 
-def retrieve_stock_data(ticker, listing_country='US'):
+def retrieve_stock_data(ticker, listing_country="US"):
     """ Main function to scrape required data for the given stock ticker
 
         We use the BS4 and requests library to load HTML pages into a BS object. We can then use this to
@@ -262,58 +291,50 @@ def retrieve_stock_data(ticker, listing_country='US'):
     ticker = ticker.strip().upper()
     parser = "html.parser"
 
-############################################################################################################
-# Getting Stock statistics (Summary Tab, Key Statistics and Profile)
+    ############################################################################################################
+    # Getting Stock statistics (Summary Tab, Key Statistics and Profile)
     # Load default stock quote page into a beautiful soup object
-    stock_info, driver = load_html_page_to_bs(page='quote',
-                                              ticker=ticker,
-                                              parser=parser)
+    stock_info, driver = load_html_page_to_bs(page="quote", ticker=ticker, parser=parser)
     driver.close()
     # return stock_info
     # Need to get the company name so that we can use it to find the company 10ks
-    company_name = stock_info.find_all('h4')[0].text
+    company_name = stock_info.find_all("h4")[0].text
 
     # Get the current price of the stock
-    current_price = stock_info.find_all("span", {'class': 'price'})[0]
-    current_price = [float(item.string)
-                     for item in current_price if item.string[0].isdigit()][0]
+    current_price = stock_info.find_all("span", {"class": "price"})[0]
+    current_price = [float(item.string) for item in current_price if item.string[0].isdigit()][0]
 
-    all_company_data['Company Name'] = company_name
-    all_company_data['Current Price'] = current_price
+    all_company_data["Company Name"] = company_name
+    all_company_data["Current Price"] = current_price
 
-############################################################################################################
-# Get quote page data
-    detailed_quote = stock_info.find_all('div', {'class': 'dq-card'})
+    ############################################################################################################
+    # Get quote page data
+    detailed_quote = stock_info.find_all("div", {"class": "dq-card"})
     quote_data = parse_quote_table(detailed_quote)
 
-    all_company_data['Quote Data'] = quote_data
-############################################################################################################
-# Company data
-    company_info, driver = load_html_page_to_bs(page='company',
-                                                ticker=ticker,
-                                                parser=parser)
+    all_company_data["Quote Data"] = quote_data
+    ############################################################################################################
+    # Company data
+    company_info, driver = load_html_page_to_bs(page="company", ticker=ticker, parser=parser)
     driver.close()
 
     company_profile_dict = get_company_data(company_info)
 
-    all_company_data['Company Profile'] = company_profile_dict
-################################################################################################################
+    all_company_data["Company Profile"] = company_profile_dict
+    ################################################################################################################
     # Financial Statements Web Scraping
 
     # Income Statement
-    inc_st, driver = load_html_page_to_bs(page='financials',
-                                          ticker=ticker,
-                                          parser=parser)
+    inc_st, driver = load_html_page_to_bs(page="financials", ticker=ticker, parser=parser)
 
-    inc_st_data = parse_financial_statement(
-        inc_st, 'IncomeStatement', driver=driver)
+    inc_st_data = parse_financial_statement(inc_st, "IncomeStatement", driver=driver)
 
     driver.close()
     # Transform dictionary of data to DF
     income_st_df = dict_to_dataframe(inc_st_data)
 
-    all_company_data['Income Statement'] = income_st_df
-############################################################################################################
+    all_company_data["Income Statement"] = income_st_df
+    ############################################################################################################
 
     return all_company_data
     """ TODO: Scraping the balance sheet and cash flow statement
@@ -365,9 +386,9 @@ def retrieve_stock_data(ticker, listing_country='US'):
 #     return all_company_data
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    data = retrieve_stock_data('AAPL')
+    data = retrieve_stock_data("AAPL")
 
 # button = driver.find_element_by_css_selector(
 #     '#pane-charting > div > div > div.col-md-9.col-lg-10 > div > div > div.qmod-tool-wrap > div > div.qmod-block-wrapper.qmod-financials-block > div.qmod-modifiers > div > div:nth-child(1) > div.qmod-mod-pad.qmod-pad-right > div > div > a')

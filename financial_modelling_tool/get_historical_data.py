@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 
 import pandas as pd
+
 # import quandl
 import datetime
 import os
@@ -26,11 +27,7 @@ def days_to_subtract(num_years, days_in_year=365):
 def get_historical_stock_data(ticker, start, end, api_key=API_KEY):
     """
     """
-    data = web.DataReader(ticker,
-                          "av-daily-adjusted",
-                          start=start,
-                          end=end,
-                          api_key=API_KEY)
+    data = web.DataReader(ticker, "av-daily-adjusted", start=start, end=end, api_key=API_KEY)
 
     return data
 
@@ -56,7 +53,7 @@ def get_sector_performance(ticker_sector, api_key=API_KEY):
     return sector_performance.loc[company_sector, :]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start = datetime.date.today() - datetime.timedelta(days=days_to_subtract(4))
     end = datetime.date.today()
 
