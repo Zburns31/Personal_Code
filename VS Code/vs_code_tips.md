@@ -9,7 +9,10 @@ Settings that you apply to VS Code can either be done globally (User settings) o
 ## Setting up your linter:
 In VS Code, you have the option for setting your preferred linter. Some linters will be installed by default when you install the language support extension (Python default is pep8). To change this, you can press ⇧⌘P and enter **language: Select Linter**
 
-## VS Code CLI Tool:
+## VS Code Integrated CLI Tool:
+VS Code has a great integrated CLI which saves you from switching between windows and VS Code. To launch the CLI press CTRL + ` (backtick) to open. It will automatically open in the directory you have open in VS Code. This makes it easy to install dependencies, use Git commands or do anything else you normally do from the command line. **Note** that you can also have multiple terminal sessions open at once.
+
+## Using VS Code from the command line:
 An incredibly helpful feature in VS Code is the CLI.  After pressing ⇧⌘P, type in **shell command** and select `Install code command in Path`. Using this, we can now open VS Code from the command line. For example:
 
 * code ~/Documents/Code/path_to_directory
@@ -26,8 +29,8 @@ After this is installed, you can launch VS Code from the command line for a bunc
 * **create a new window**
     * code -n
 
-## Integrated Terminal
-TODO
+## Multiple Cursor
+VS Code supports multiple cursors for fast simultaneous edits. ⌘D selects the word at the cursor, or the next occurrence of the current selection. You can add more cursors using ⇧⌘L, which will add a selection at each occurrence of the current selected text
 
 # Helpful Extensions
 
@@ -51,6 +54,10 @@ VS Code has a built in markdown document viewer. Press ⇧⌘V when you are work
 ## Jupyter Notebook support:
 https://code.visualstudio.com/docs/python/jupyter-support-py
 
+## Bracket Pair Colorizer
+This extension allows matching brackets to be identified with colours. The user can define which characters to match, and which colours to use. It is quite helpful when reading through code
+
+
 ## Time Saving Tips:
 Add the below commands to your settings.json file to help save you time as you're writing code
 1. **Format pasted code:** add "editor.formatOnPaste": true
@@ -58,3 +65,7 @@ Add the below commands to your settings.json file to help save you time as you'r
 1. **Trim extra newlines on save:** "files.trimFinalNewlines": true
 1. **Trim trailing whitespace on save:** "files.trimTrailingWhitespace": true
 1. **Set autowrap length for code:** "editor.wordWrapColumn": 100
+1. **Find and Replace:**: Highlight a word and press **⌘⇧L** to highlight all occurences. Using this multiple cursor, you can replace all occurences of the highlighted section
+
+
+TODO: other great extensions here: https://x-team.com/blog/best-vscode-extensions/
