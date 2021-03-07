@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<head>
+  <title>Games Rating: 2015 - 2019</title>
+  <meta charset="utf-8">
+  <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+  <script type="text/javascript" src="../lib/d3-dsv.min.js"></script>
+</head>
+
+<style>
+  .text_label {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 15px;
+  }
+
+  .axis {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+  }
+</style>
+
+<body>
+
+  <div id="container"></div>
+  <div id="container2"></div>
+
+  <script>
+
+    // Set the margins
+    var margin = { top: 50, right: 50, bottom: 50, left: 50 }
+    var width = 1200;
+    var height = 600;
+
+    var dataset, xScale, yScale, xScaleB, yScaleB;
+
+    // Get the data
+    var csvPath = "average-rating.csv"
+
+    d3.dsv(",", csvPath, function (d) {
+      // cast datatypes to correct types
+      return {
+        name: d.name,
+        year: parseInt(d.year),
+        averageRating: parseInt(d.average_rating),
+        usersRated: parseInt(d.users_rated),
+      };
+    }).then(function (data) {
+
+      dataset = data;
+
+      aggData = d3.nest()
+        .key(d => d.year) // group by year
+        .sortKeys((a, b) => d3.ascending(+a, +b)) //sort by year
+        .key(d => d.averageRating) // group by averageRating
+        .sortKeys(d3.ascending) // Sort keys based on value
+        .rollup(function (d) {
+          return d.length.toString();
+        })
+        .entries(dataset);
+
+      aggData = aggData.map(function (d) {
+        // Return an object with double nested keys/values
+        return {
+          key: d.key,
+          values: d3.range(10).map(function (k) { // Generate a list from 0-10 (game rankings)
+            value = d.values.filter(function (v) { return +v.key == k; })[0] // Find the first key and check if present
+            return value || ({ key: k.toString(), value: "0" }); // Return the key if it exists, otherwirse create one
+          })
+        };
+      })
+
+      // append svg element to the body of the page
+      // set dimensions and position of the svg element
+      var svg = d3.select("#container")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+
+      //----------------------------Scales & Axes------------------------------//
+
+      // create scales x & y for X and Y axis and set their ranges
+      xScale = d3.scaleLinear()
+        .domain([
+          0,
+          d3.max(aggData, function (row) {
+            return d3.max(row.values, function (col) {
+              return +col.key;
+            })
+          })])
+        .range([margin.left * 2, width - margin.right])
+        .nice();
+
+      yScale = d3.scaleLinear()
+        .domain([
+          0,
+          d3.max(aggData, function (row) {
+            return d3.max(row.values, function (col) { // Use array of max values from each column above
+              return +col.value;
+            });
+          })
+        ])
+        .range([height - margin.bottom, margin.top * 2])
+        .nice();
+
+
+      // Create X and Y Axis
+      xAxis = d3.axisBottom()
+        .scale(xScale)
+        .ticks(10);
+
+
+      yAxis = d3.axisLeft()
+        .scale(yScale)
+        .ticks(10);
+
+      //----------------------------Create Axes and Labels------------------------------//
+
+      //Create axes
+      svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+        .call(xAxis);
+
+      svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(" + margin.left * 2 + ",0)")
+        .call(yAxis);
+
+      // Add the text label for X Axis
+      svg.append("text")
+        .attr("transform", "translate(" + Math.round(width / 2) + "," + (height - Math.floor(margin.bottom / 6)) + ")")
+        .attr("class", "text_label")
+        .style("text-anchor", "middle")
+        .text("Rating");
+
+      // Add the text label for Y axis
+      svg.append("text")
+        .attr("transform", "translate(" + Math.round(margin.left) + "," + Math.round(height / 2) + ") rotate(-90)")
+        .attr("class", "text_label")
+        .style("text-anchor", "middle")
+        .text("Count");
+
+      //----------------------------Function to build each line and associated circles------------------------------//
+
+      var relevantYears = ["2015", "2016", "2017", "2018", "2019"];
+      var colors = ["mediumspringgreen", "violet", "dodgerblue", "orangered", "mediumslateblue"];
+
+      var buildGraph = function (year, color) {
+
+        //First filter out the required data which using the key (year)
+        var yearlyData = aggData.filter(function (row) {
+          return row.key == year;
+        });
+
+        lineData = yearlyData[0]; // Select the first element as data returned is only 1 element in length
+        var yearNum = lineData.key
+
+        // Create Line objects
+        line = d3.line()
+          .x(function (d) { return xScale(+d.key); })
+          .y(function (d) { return yScale(+d.value); });
+
+        // Create lines
+        svg.append("path")
+          .datum(lineData.values) // Pass values property as data to graph
+          .attr("class", "line")
+          .attr("d", line)
+          .style("fill", "none")
+          .style("stroke", color);
+
+        // Append each circle to a group element
+        var circles = svg.selectAll("g.circles")
+          .data(lineData.values)
+          .enter()
+          .append("g")
+
+        circles.append("circle")
+          .on("mouseover", function (d) {
+            d3.select(this).attr("r", 10);
+            mouseOver(barChartData, d.key, yearNum);
+          })
+          .on("mouseout", function (d) {
+            d3.select(this).attr("r", "5")
+          })
+          .on("mouseout", function (d) {
+            d3.select(this).attr("r", 5)
+            d3.select(".barChart").remove();
+          })
+          .attr("cx", function (d) { return xScale(+d.key); })
+          .attr("cy", function (d) { return yScale(+d.value); })
+          .attr("r", 5)
+          .style("fill", color);
+
+      }
+
+      relevantYears.forEach(function (year, index) {
+        buildGraph(year, colors[index])
+
+        //----------------------------Create Legend------------------------------//
+        svg.append("circle")
+          .attr("cx", width - margin.right * 2)
+          .attr("cy", margin.top + (index * 30))
+          .attr("r", 6)
+          .style("fill", colors[index]);
+
+        svg.append("text")
+          .attr("x", width - Math.floor(margin.right * 1.5))
+          .attr("y", margin.top + (index * 30) + 6)
+          .text(year)
+          .attr("alignment-baseline", "middle")
+          .attr("class", "text_label");
+
+      })
+
+      //----------------------------Add title and Username------------------------------//
+      svg.append("text")
+        .attr("transform", "translate(" + (width / 2) + "," + (margin.top) + ")")
+        .attr("class", "text_label")
+        .style("text-anchor", "middle")
+        .style("font-weight", 900)
+        .style("font-size", "24px")
+        .text("Board Games by Rating 2015-2019");
+
+      svg.append("text")
+        .attr("transform", "translate(" + (width / 2) + "," + Math.floor(margin.top * 1.75) + ")")
+        .attr("class", "text")
+        .style("text-anchor", "middle")
+        .style("font-size", "24px")
+        .text("zburns6");
+
+
+      //----------------------------Q4C---------------------------------------------------//
+
+      barChartData = d3.nest()
+        .key(d => d.year) // group by year
+        .sortKeys((a, b) => d3.ascending(+a, +b)) //sort by year
+        .key(d => d.averageRating) // group by averageRating
+        .sortKeys(d3.descending) // Sort keys based on value
+        .entries(dataset);
+
+      var mouseOver = function mouseOver(data, keyNum, yearNum,) {
+
+        // Function to retrieve data necessary for building bar chart
+        filteredData = function (data, keyNum, year = null) {
+          var arr = [];
+          // Loop through keys (years to retreieve specific game rating (key))
+          data.forEach(function (d) {
+            // Collect the values for ease to access array of values
+            var values = d["values"];
+
+            // Filter for only the key that we want
+            var filteredKeys = values.filter(function (k) {
+              return k.key === keyNum;
+            });
+
+            // Create an object with the key as the year and value as board game rating and num ratings
+            obj = { key: d.key, values: filteredKeys }
+            arr.push(obj);
+          });
+          if (year) {
+            return arr.filter(function (row) { return row.key == year; }); // Filter specific year from the array if required
+          } else {
+            return arr;
+          }
+        }
+
+        // Get data for year and rating value
+        ratingsData = filteredData(barChartData, keyNum, yearNum);
+
+        // Access yearly data through the key/value
+        yearlyData = ratingsData[0]["values"];
+
+        // Check if data exists for that year and ranking key
+        if (yearlyData.length > 0) {
+          var games = yearlyData[0]["values"];
+        } else { // If the values array is empty, return early since no games for that year with that ranking
+          return;
+        }
+
+
+        // Sort the games by usersRated and then retrieve the top 5 games for the ratings data
+        top5Games = games.sort(function (a, b) { return b.usersRated - a.usersRated; }).slice(0, 5);
+        // Re sort so that the bar with the highest value is on top
+        top5Games = top5Games.sort(function (a, b) { return a.usersRated - b.usersRated; })
+
+        // Modify game names to only show the first 10 characters
+        top5Games = top5Games.map(function (game) {
+          if (game.name.length < 11) {
+            return game;
+          } else { // If name is 11 or more, return first 10 characters
+            game.name = game.name.slice(0, 10);
+            return game;
+          }
+        });
+
+
+        //----------------------------Create new Container------------------------------//
+
+        // append svg element to the body of the page
+        // set dimensions and position of the svg element
+        var svg2 = d3.select("#container2")
+          .append("svg")
+          .attr("class", "barChart")
+          .attr("width", width)
+          .attr("height", height);
+
+
+        //----------------------------Scales & Axes------------------------------//
+
+        // create scales x & y for X and Y axis and set their ranges
+        xScaleB = d3.scaleLinear()
+          .domain([
+            0,
+            d3.max(top5Games, function (d) { return d.usersRated; })
+          ]) // Get list of names from games data
+          .range([margin.left * 4, width - (margin.right * 4)])
+          .nice();
+
+        yScaleB = d3.scaleBand()
+          .domain(top5Games.map(function (game) { return game.name; }))
+          .range([height - (margin.bottom * 4), margin.top * 3])
+          .padding(0.1);
+
+
+        // Create X and Y Axis
+        xAxisB = d3.axisBottom()
+          .scale(xScaleB)
+          .ticks(10);
+
+        yAxisB = d3.axisLeft()
+          .scale(yScaleB);
+
+
+        //----------------------------Add Bars and Data-----------------------------------//
+
+        // Add vertical lines to the chart and remove the first value (0)
+        var axisValues = xAxisB.scale().ticks().slice(1, -1); // Remove the first and last bar at the left/right side of the chart
+
+        axisValues.forEach(function (d) {
+
+          svg2.append("line")
+            .attr("x1", xScaleB(d) + 0.5) // add 0.5 due to axis labels being translated by 0.5 pixels
+            .attr("x2", xScaleB(d) + 0.5)
+            .attr("y1", yScaleB.range()[0])
+            .attr("y2", yScaleB.range()[1])
+            .style("stroke", "black");
+        });
+
+        var bars = svg2.selectAll("g.rect")
+          .data(top5Games)
+          .enter()
+          .append("g")
+
+        bars.append("rect")
+          .attr("x", margin.left * 4)
+          .attr("y", function (d) { return yScaleB(d.name); })
+          // Subtract by margin.left -4 since we shift the starting x value
+          .attr("width", function (d) { return xScaleB(d.usersRated) - (margin.left * 4); })
+          .attr("height", yScaleB.bandwidth())
+          .style("fill", "deepskyblue")
+          .style("opacity", 0.8);
+
+
+        //----------------------------Create Axes and Labels------------------------------//
+
+        //Create axes
+        svg2.append("g")
+          .attr("class", "axis")
+          .attr("transform", "translate(0," + Math.floor(height - (margin.bottom * 4)) + ")")
+          .call(xAxisB);
+
+        svg2.append("g")
+          .attr("class", "axis")
+          .attr("transform", "translate(" + margin.left * 4 + ",0)")
+          .call(yAxisB);
+
+        // Add the text label for X Axis
+        svg2.append("text")
+          .attr("transform", "translate(" + Math.round(width / 2) + "," + (height - (margin.bottom * 3)) + ")")
+          .attr("class", "axis_label")
+          .style("text-anchor", "middle")
+          .text("Number of Users");
+
+        // Add the text label for Y axis
+        svg2.append("text")
+          .attr("transform", "translate(" + Math.round(margin.left * 2) + "," + Math.round(height / 2) + ") rotate(-90)")
+          .attr("class", "axis_label")
+          .style("text-anchor", "middle")
+          .text("Games");
+
+        svg2.append("text")
+          .attr("transform", "translate(" + (width / 2) + "," + (margin.top * 2) + ")")
+          .attr("id", "title")
+          .style("text-anchor", "middle")
+          .style("font-weight", 900)
+          .style("font-size", "24px")
+          .text("Top 5 Most Rated Games for Year " + yearNum + " with rating " + keyNum);
+
+      }
+
+
+    });
+
+  </script>
+
+</body>

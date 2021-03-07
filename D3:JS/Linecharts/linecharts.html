@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Q3 Line Charts</title>
+    <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+</head>
+
+<style>
+    .line {
+        fill: none;
+        stroke: #ffab00;
+        stroke-width: 3;
+    }
+
+
+    .label {
+        font-family: Verdana;
+        font-weight: bold;
+
+    }
+
+    .axis_label {
+        font-family: Verdana;
+    }
+
+    .axis {
+        font-family: Verdana;
+        fill: none;
+    }
+
+    .datapoints {
+        shape-rendering: auto;
+    }
+
+    @media print {
+        .pagebreak {
+            page-break-before: always;
+        }
+    }
+</style>
+
+<body>
+    <div class="chartA"></div>
+    <div class="pagebreak"> </div>
+    <div class="chartB"></div>
+    <div class="pagebreak"> </div>
+    <div class="chartC1"></div>
+    <div class="pagebreak"> </div>
+    <div class="chartC2"></div>
+
+    <script type="text/javascript">
+
+        //var dataset, xAxis, yAxis;
+
+        // Use the margin convention practice
+        var margin = { top: 50, right: 50, bottom: 50, left: 50 }
+        var width = 1200;
+        var height = 600;
+        var colors = d3.schemeCategory10;
+        //, width = window.innerWidth - margin.left - margin.right // Use the window's width
+        //, height = (window.innerHeight) - margin.top - margin.bottom; // Use the window's height
+
+        // define function to parse time in years format
+        var parseTime = d3.timeParse("%Y-%m-%d");
+
+        var formatTime = d3.timeFormat("%b %y");
+
+        // Get the data
+        var csvPath = "boardgame_ratings.csv"
+
+        d3.dsv(",", csvPath).then(function (data) {
+
+            // Setup
+            dataset = data;
+            keys = dataset.columns;
+
+            // Convert the date in each row to a Date object
+            dataset.forEach(function (d) {
+                d["date"] = parseTime(d["date"])
+            });
+
+            // Convert each key in each object to an integer
+            dataset.forEach(function (row) {
+                for (var key = 1; key < keys.length; key++) {
+                    row[keys[key]] = +row[keys[key]]; // Assign each value given key as an integer
+                }
+            })
+
+            // Get only required columns for line chart A (Q3a)
+            var QACols = dataset.columns.filter(function (d) { return d.includes('=count'); });
+
+
+            //----------------------------Scales & Axes------------------------------//
+
+            // create scales x & y for X and Y axis and set their ranges
+            xScale = d3.scaleTime()
+                .domain([
+                    d3.min(dataset, function (d) { return d.date; }),
+                    d3.max(dataset, function (d) { return d.date; })
+                ])
+                .range([margin.left * 2, width - margin.right * 4]);
+
+            yScale = d3.scaleLinear()
+                .domain([
+                    0,
+                    d3.max(dataset, function (d) { return d["Catan=count"]; }) // Use array of max values from each column above
+                ])
+                .range([height - margin.bottom, margin.top])
+                .nice();
+
+
+            // Create X and Y Axis
+            xAxis = d3.axisBottom()
+                .scale(xScale)
+                .ticks(d3.timeMonth.every(3))
+                .tickFormat(formatTime);
+
+
+            yAxis = d3.axisLeft()
+                .scale(yScale)
+                .ticks(10);
+
+            //----------------------------SVG Creation------------------------------//
+
+            // append svg element to the body of the page
+            // set dimensions and position of the svg element
+            var svg = d3.select(".chartA")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            //----------------------------Create Lines and Text Labels------------------------------//
+
+            // Generate Data for Linechart A (Q3A) (Number of Game Ratings)
+            QACols.forEach(function (col, i) {
+                lineData = filterData(dataset, col);
+
+                // Create Line objects
+                line = d3.line()
+                    .x(function (d) { return xScale(d.date); })
+                    .y(function (d) { return yScale(d[col]); });
+
+                // Create lines
+                svg.append("path")
+                    .datum(lineData)
+                    .attr("class", "line")
+                    .attr("d", line)
+                    .style("stroke", colors[i]);
+
+
+                //Label each line
+                svg.append("text")
+                    .datum(function (d) {
+                        return
+                    })
+                    .attr("class", "label")
+                    .attr("x", xScale(lineData[lineData.length - 1]["date"]) + 10)
+                    .attr("y", yScale(lineData[lineData.length - 1][col]) + 5)
+                    .text(col.split("=")[0])
+                    .style("fill", colors[i]);;
+            });
+
+            //----------------------------Create Axes and Labels------------------------------//
+
+            //Create axes
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + margin.left * 2 + ",0)")
+                .call(yAxis);
+
+
+            // Add the text label for X Axis
+            svg.append("text")
+                .attr("transform", "translate(" + Math.round(width / 2) + "," + (height) + ")")
+                .attr("class", "axis_label")
+                .style("text-anchor", "middle")
+                .text("Month");
+
+            // Add the text label for Y axis
+            svg.append("text")
+                .attr("transform", "translate(" + Math.round(margin.left / 3) + "," + Math.round(height / 2) + ") rotate(-90)")
+                .attr("class", "axis_label")
+                .style("text-anchor", "middle")
+                .text("Num of Ratings");
+
+            svg.append("text")
+                .attr("transform", "translate(" + (width / 2) + "," + (margin.top) + ")")
+                .attr("id", "title")
+                .style("text-anchor", "middle")
+                .style("font-weight", 900)
+                .style("font-size", "24px")
+                .text("Number of Ratings 2016-2020");
+
+            //----------------------------Q3B------------------------------//
+
+
+            //----------------------------SVG Creation------------------------------//
+
+            // append svg element to the body of the page
+            // set dimensions and position of the svg element
+            var svg2 = d3.select(".chartB")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Generate Data for Linechart A (Q3A) (Number of Game Ratings)
+            QACols.forEach(function (col, i) {
+                var lineData = filterData(dataset, col);
+
+                var gameName = Object.keys(lineData[0])[1].split("=")[0]
+
+                // Create Line objects
+                line = d3.line()
+                    .x(function (d) { return xScale(d.date); })
+                    .y(function (d) { return yScale(d[col]); });
+
+                // Create lines
+                svg2.append("path")
+                    .datum(lineData)
+                    .attr("class", "line")
+                    .attr("d", line)
+                    .style("stroke", colors[i]);
+
+
+                //Label each line
+                svg2.append("text")
+                    .attr("class", "label")
+                    .attr("x", xScale(lineData[lineData.length - 1]["date"]) + 10)
+                    .attr("y", yScale(lineData[lineData.length - 1][col]) + 5)
+                    .text(col.split("=")[0])
+                    .style("fill", colors[i]);
+            });
+
+            //----------------------------Create Circles and Text Labels------------------------------//
+
+            // Get all board games from the dataset columns
+            // Remove date column, split board game column names and remove =count or =rank as a unique list
+            var boardGames = Array.from(new Set(dataset.columns.slice(1).map(function (d) { return d.split("="); }).map(function (d) { return d[0]; })));
+            var filteredGames = ["Catan", "Codenames", "Terraforming Mars", "Gloomhaven"];
+
+            for (const [index, gameName] of boardGames.entries()) {
+                if (filteredGames.includes(gameName)) {
+                    // Filter only the columns we need from the data
+                    filteredData = filterData(dataset, gameName + "=count", gameName + "=rank");
+
+                    // Make list of X axis tick values as a list of string dates
+                    var axisDates = xAxis.scale().ticks().map(function (d) { return d.toString(); });
+
+                    var circles = svg2.selectAll("g.circles")
+                        .data(filteredData)
+                        .enter()
+                        .filter(function (d) { return axisDates.includes(d.date.toString()) }) // check if current date is in the list of axis dates
+                        .append("g");
+
+                    circles.append("circle")
+                        .attr("class", "datapoints")
+                        .attr("fill", function (d) {
+                            return colors[index];
+                        })
+                        .attr("stroke", "none")
+                        .attr("r", 12)
+                        .attr("cx", function (d) { return xScale(d.date); })
+                        .attr("cy", function (d) { return yScale(d[gameName + "=count"]); });
+
+                    circles.append("text")
+                        .attr("x", function (d) {
+                            return xScale(d.date);
+                        })
+                        .attr("y", function (d) { return yScale(d[gameName + "=count"]); })
+                        .style("text-anchor", "middle")
+                        .style("font-size", "10px")
+                        .style("fill", "white")
+                        .text(function (d) { return d[gameName + "=rank"]; });
+                }
+            }
+
+            //----------------------------Create Axes and Labels------------------------------//
+
+            //Create axes
+            svg2.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+                .call(xAxis);
+
+            svg2.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + margin.left * 2 + ",0)")
+                .call(yAxis);
+
+
+            // Add the text label for X Axis
+            svg2.append("text")
+                .attr("transform", "translate(" + Math.round(width / 2) + "," + (height) + ")")
+                .attr("class", "axis_label")
+                .style("text-anchor", "middle")
+                .text("Month");
+
+            // Add the text label for Y axis
+            svg2.append("text")
+                .attr("transform", "translate(" + Math.round(margin.left / 3) + "," + Math.round(height / 2) + ") rotate(-90)")
+                .attr("class", "axis_label")
+                .style("text-anchor", "middle")
+                .text("Num of Ratings");
+
+            svg2.append("text")
+                .attr("transform", "translate(" + (width / 2) + "," + (margin.top) + ")")
+                .attr("id", "title")
+                .style("text-anchor", "middle")
+                .style("font-weight", 900)
+                .style("font-size", "24px")
+                .text("Number of Ratings 2016-2020 with Rankings");
+
+            svg2.append("text")
+                .attr("x", width - margin.right * 2)
+                .attr("y", height - margin.bottom + 15)
+                .style("text-anchor", "middle")
+                .style("font-size", "16px")
+                .text("BoardGameGeek Rank");
+
+            svg2.append("circle")
+                .attr("cx", width - margin.right * 2)
+                .attr("cy", height - margin.bottom * 1.5)
+                .attr("r", 20)
+                .style("fill", "black");
+
+            svg2.append("text")
+                .attr("x", width - margin.right * 2)
+                .attr("y", height - Math.round(margin.bottom * 1.5) + 2)
+                .attr("text-anchor", "middle")
+                .style("fill", "white")
+                .text("rank");
+
+
+            //----------------------------------------------------------Q3C1------------------------------------------------------------//
+
+            // Square root scale chart (copied from above)
+
+            //----------------------------Scales & Axes------------------------------//
+
+            // create scales x & y for X and Y axis and set their ranges
+
+            yScaleSqrt = d3.scaleSqrt()
+                .domain([
+                    0,
+                    d3.max(dataset, function (d) { return d["Catan=count"]; }) // Use array of max values from each column above
+                ])
+                .range([height - margin.bottom, margin.top])
+                .nice();
+
+
+            // Create X and Y Axis
+            xAxis = d3.axisBottom()
+                .scale(xScale)
+                .ticks(d3.timeMonth.every(3))
+                .tickFormat(formatTime);
+
+
+            yAxisSqrt = d3.axisLeft()
+                .scale(yScaleSqrt)
+                .ticks(10);
+
+            //----------------------------SVG Creation------------------------------//
+
+            // append svg element to the body of the page
+            // set dimensions and position of the svg element
+            var svg3 = d3.select(".chartC1")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Generate Data for Linechart A (Q3A) (Number of Game Ratings)
+            QACols.forEach(function (col, i) {
+                var lineData = filterData(dataset, col);
+
+                var gameName = Object.keys(lineData[0])[1].split("=")[0]
+
+                // Create Line objects
+                line = d3.line()
+                    .x(function (d) { return xScale(d.date); })
+                    .y(function (d) { return yScaleSqrt(d[col]); });
+
+                // Create lines
+                svg3.append("path")
+                    .datum(lineData)
+                    .attr("class", "line")
+                    .attr("d", line)
+                    .style("stroke", colors[i]);
+
+
+                //Label each line
+                svg3.append("text")
+                    .attr("class", "label")
+                    .attr("x", xScale(lineData[lineData.length - 1]["date"]) + 10)
+                    .attr("y", yScaleSqrt(lineData[lineData.length - 1][col]) + 5)
+                    .text(col.split("=")[0])
+                    .style("fill", colors[i]);
+            });
+
+            //----------------------------Create Circles and Text Labels------------------------------//
+
+            // Get all board games from the dataset columns
+            // Remove date column, split board game column names and remove =count or =rank as a unique list
+            var boardGames = Array.from(new Set(dataset.columns.slice(1).map(function (d) { return d.split("="); }).map(function (d) { return d[0]; })));
+            var filteredGames = ["Catan", "Codenames", "Terraforming Mars", "Gloomhaven"];
+
+            for (const [index, gameName] of boardGames.entries()) {
+                if (filteredGames.includes(gameName)) {
+                    // Filter only the columns we need from the data
+                    filteredData = filterData(dataset, gameName + "=count", gameName + "=rank");
+
+                    // Make list of X axis tick values as a list of string dates
+                    var axisDates = xAxis.scale().ticks().map(function (d) { return d.toString(); });
+
+                    var circles = svg3.selectAll("g.circles")
+                        .data(filteredData)
+                        .enter()
+                        .filter(function (d) { return axisDates.includes(d.date.toString()) }) // check if current date is in the list of axis dates
+                        .append("g");
+
+                    circles.append("circle")
+                        .attr("class", "datapoints")
+                        .attr("fill", function (d) {
+                            return colors[index];
+                        })
+                        .attr("stroke", "none")
+                        .attr("r", 12)
+                        .attr("cx", function (d) { return xScale(d.date); })
+                        .attr("cy", function (d) { return yScaleSqrt(d[gameName + "=count"]); });
+
+                    circles.append("text")
+                        .attr("x", function (d) {
+                            return xScale(d.date);
+                        })
+                        .attr("y", function (d) { return yScaleSqrt(d[gameName + "=count"]); })
+                        .style("text-anchor", "middle")
+                        .style("font-size", "10px")
+                        .style("fill", "white")
+                        .text(function (d) { return d[gameName + "=rank"]; });
+                }
+            }
+
+            //----------------------------Create Axes and Labels------------------------------//
+
+            //Create axes
+            svg3.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+                .call(xAxis);
+
+            svg3.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + margin.left * 2 + ",0)")
+                .call(yAxisSqrt);
+
+
+            // Add the text label for X Axis
+            svg3.append("text")
+                .attr("transform", "translate(" + Math.round(width / 2) + "," + (height) + ")")
+                .attr("class", "axis_label")
+                .style("text-anchor", "middle")
+                .text("Month");
+
+            // Add the text label for Y axis
+            svg3.append("text")
+                .attr("transform", "translate(" + Math.round(margin.left / 3) + "," + Math.round(height / 2) + ") rotate(-90)")
+                .attr("class", "axis_label")
+                .style("text-anchor", "middle")
+                .text("Num of Ratings");
+
+            svg3.append("text")
+                .attr("transform", "translate(" + (width / 2) + "," + (margin.top) + ")")
+                .attr("id", "title")
+                .style("text-anchor", "middle")
+                .style("font-weight", 900)
+                .style("font-size", "24px")
+                .text("Number of Ratings 2016-2020 (Square Root Scale)");
+
+            svg3.append("text")
+                .attr("x", width - margin.right * 2)
+                .attr("y", height - margin.bottom + 15)
+                .style("text-anchor", "middle")
+                .style("font-size", "16px")
+                .text("BoardGameGeek Rank");
+
+            svg3.append("circle")
+                .attr("cx", width - margin.right * 2)
+                .attr("cy", height - margin.bottom * 1.5)
+                .attr("r", 20)
+                .style("fill", "black");
+
+            svg3.append("text")
+                .attr("x", width - margin.right * 2)
+                .attr("y", height - Math.round(margin.bottom * 1.5) + 2)
+                .attr("text-anchor", "middle")
+                .style("fill", "white")
+                .text("rank");
+
+
+            //----------------------------------------------------------Q3C2------------------------------------------------------------//
+
+            // Log scale chart (copied from above)
+
+            //----------------------------Scales & Axes------------------------------//
+
+            // create scales x & y for X and Y axis and set their ranges
+
+            yScaleLog = d3.scaleLog()
+                .domain([
+                    0.01,
+                    d3.max(dataset, function (d) { return d["Catan=count"]; }) // Use array of max values from each column above
+                ])
+                .range([height - margin.bottom, margin.top * 2])
+                .nice();
+
+
+            // Create X and Y Axis
+            xAxis = d3.axisBottom()
+                .scale(xScale)
+                .ticks(d3.timeMonth.every(3))
+                .tickFormat(formatTime);
+
+
+            yAxisLog = d3.axisLeft()
+                .scale(yScaleLog)
+                .tickValues([1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e+0, 1e+1, 1e+2, 1e+3, 1e+4]);
+
+            //----------------------------SVG Creation------------------------------//
+
+            // append svg element to the body of the page
+            // set dimensions and position of the svg element
+            var svg4 = d3.select(".chartC2")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Generate Data for Linechart A (Q3A) (Number of Game Ratings)
+            QACols.forEach(function (col, i) {
+                var lineData = filterData(dataset, col);
+
+                var gameName = Object.keys(lineData[0])[1].split("=")[0]
+
+                // Create Line objects
+                line = d3.line()
+                    .x(function (d) { return xScale(d.date); })
+                    .y(function (d) { return yScaleLog(d[col]); });
+
+                // Create lines
+                svg4.append("path")
+                    .datum(lineData)
+                    .attr("class", "line")
+                    .attr("d", line)
+                    .style("stroke", colors[i]);
+
+
+                //Label each line
+                svg4.append("text")
+                    .attr("class", "label")
+                    .attr("x", xScale(lineData[lineData.length - 1]["date"]) + 10)
+                    .attr("y", yScaleLog(lineData[lineData.length - 1][col]) + 5)
+                    .text(col.split("=")[0])
+                    .style("fill", colors[i]);
+            });
+
+            //----------------------------Create Circles and Text Labels------------------------------//
+
+            // Get all board games from the dataset columns
+            // Remove date column, split board game column names and remove =count or =rank as a unique list
+            var boardGames = Array.from(new Set(dataset.columns.slice(1).map(function (d) { return d.split("="); }).map(function (d) { return d[0]; })));
+            var filteredGames = ["Catan", "Codenames", "Terraforming Mars", "Gloomhaven"];
+
+            for (const [index, gameName] of boardGames.entries()) {
+                if (filteredGames.includes(gameName)) {
+                    // Filter only the columns we need from the data
+                    filteredData = filterData(dataset, gameName + "=count", gameName + "=rank");
+
+                    // Make list of X axis tick values as a list of string dates
+                    var axisDates = xAxis.scale().ticks().map(function (d) { return d.toString(); });
+
+                    var circles = svg4.selectAll("g.circles")
+                        .data(filteredData)
+                        .enter()
+                        .filter(function (d) { return axisDates.includes(d.date.toString()) }) // check if current date is in the list of axis dates
+                        .append("g");
+
+                    circles.append("circle")
+                        .attr("class", "datapoints")
+                        .attr("fill", function (d) {
+                            return colors[index];
+                        })
+                        .attr("stroke", "none")
+                        .attr("r", 12)
+                        .attr("cx", function (d) { return xScale(d.date); })
+                        .attr("cy", function (d) { return yScaleLog(d[gameName + "=count"]); });
+
+                    circles.append("text")
+                        .attr("x", function (d) {
+                            return xScale(d.date);
+                        })
+                        .attr("y", function (d) { return yScaleLog(d[gameName + "=count"]); })
+                        .style("text-anchor", "middle")
+                        .style("font-size", "10px")
+                        .style("fill", "white")
+                        .text(function (d) { return d[gameName + "=rank"]; });
+                }
+            }
+
+            //----------------------------Create Axes and Labels------------------------------//
+
+            //Create axes
+            svg4.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+                .call(xAxis);
+
+            svg4.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + margin.left * 2 + ",0)")
+                .call(yAxisLog);
+
+
+            // Add the text label for X Axis
+            svg4.append("text")
+                .attr("transform", "translate(" + Math.round(width / 2) + "," + (height) + ")")
+                .attr("class", "axis_label")
+                .style("text-anchor", "middle")
+                .text("Month");
+
+            // Add the text label for Y axis
+            svg4.append("text")
+                .attr("transform", "translate(" + Math.round(margin.left / 3) + "," + Math.round(height / 2) + ") rotate(-90)")
+                .attr("class", "axis_label")
+                .style("text-anchor", "middle")
+                .text("Num of Ratings");
+
+            svg4.append("text")
+                .attr("transform", "translate(" + (width / 2) + "," + (margin.top) + ")")
+                .attr("id", "title")
+                .style("text-anchor", "middle")
+                .style("font-weight", 900)
+                .style("font-size", "24px")
+                .text("Number of Ratings 2016-2020 (Log Scale)");
+
+            svg4.append("text")
+                .attr("x", width - margin.right * 2)
+                .attr("y", height - margin.bottom + 15)
+                .style("text-anchor", "middle")
+                .style("font-size", "16px")
+                .text("BoardGameGeek Rank");
+
+            svg4.append("circle")
+                .attr("cx", width - margin.right * 2)
+                .attr("cy", height - margin.bottom * 1.5)
+                .attr("r", 20)
+                .style("fill", "black");
+
+            svg4.append("text")
+                .attr("x", width - margin.right * 2)
+                .attr("y", height - Math.round(margin.bottom * 1.5) + 2)
+                .attr("text-anchor", "middle")
+                .style("fill", "white")
+                .text("rank");
+
+            svg4.append("text")
+                .attr("x", width - margin.right * 2)
+                .attr("y", height - Math.round(margin.bottom / 3))
+                .attr("text-anchor", "middle")
+                .style("fill", "black")
+                .text("Zburns6");
+        })
+
+
+
+        //----------------------------Helper Functions------------------------------//
+        // Need to find and keep only the columns/data we need for the line charts
+        function filterData(data, gameFilter, gameFilter2 = null) {
+            var lineData = [];
+            var cols = ["date", gameFilter, gameFilter2];
+
+            data.forEach(function (row, i) {
+                var rowData = {};
+                keys = Object.keys(row);
+
+                keys.forEach(function (key) {
+                    if (cols.includes(key)) {
+                        rowData[key] = row[key];
+                    };
+                });
+
+                lineData.push(rowData);
+
+
+            });
+            return lineData;
+        }
+    </script>
+</body>
+
+</html>
